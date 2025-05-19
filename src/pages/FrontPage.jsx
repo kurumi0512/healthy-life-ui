@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
+import { useAuth } from '../auth/AuthContext';
 import HealthSidebar from './HealthSidebar';
 
 function FrontPage() {
+  const { user, logout } = useAuth();
   const allNews = [
     { title: '糖尿病患要注意！這 5 種食物控血糖超有效', url: 'https://www.edh.tw/article/37784' },
     { title: '多吃纖維就對了？醫師揭高纖飲食 3 大重點', url: 'https://www.edh.tw/article/29956' },
@@ -33,6 +35,24 @@ function FrontPage() {
       {/* 左邊：新聞清單 */}
       <div className="flex-1 bg-white rounded-lg shadow-md p-6">
         <h1 className="text-3xl font-bold text-blue-700 mb-4">Health News</h1>
+        
+         {/* ✅ 登入狀態區塊 */}
+          {user ? (
+            <div className="mb-4">
+              <p className="text-green-700">👋 嗨，{user}！歡迎回來</p>
+              <button
+                onClick={logout}
+                className="mt-2 bg-red-600 text-white py-1 px-3 rounded hover:bg-red-700"
+              >
+                登出
+              </button>
+            </div>
+          ) : (
+            <p className="text-gray-500 mb-4">尚未登入，請先登入以使用完整功能</p>
+          )}
+
+
+
         <h2 className="text-xl font-semibold text-gray-700 mb-2">
           對哪些健康話題有興趣呢?
         </h2>

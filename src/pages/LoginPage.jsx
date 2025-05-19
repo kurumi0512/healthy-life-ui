@@ -23,7 +23,7 @@ function LoginPage() {
     setCaptcha('');
   };
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     const newErrors = {};
 
@@ -37,10 +37,14 @@ function LoginPage() {
       return;
     }
 
-    login({ name: username });
-    navigate('/');
+    const result = await login({ username, password });
+    if (result.success) {
+      navigate('/');
+    } else {
+      alert(result.message); // 顯示錯誤訊息
+    }
   };
-
+  
   return (
     <div className="p-6 max-w-md mx-auto shadow-lg rounded bg-white">
       <h1 className="text-2xl font-bold mb-6 text-center">會員登入</h1>

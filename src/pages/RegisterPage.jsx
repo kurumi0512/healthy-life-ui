@@ -38,17 +38,41 @@ function RegisterPage() {
     return newErrors;
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const foundErrors = validate();
-    if (Object.keys(foundErrors).length > 0) {
-      setErrors(foundErrors);
-      return;
+  const handleSubmit = async (e) => {
+  e.preventDefault();
+  const foundErrors = validate();
+  if (Object.keys(foundErrors).length > 0) {
+    setErrors(foundErrors);
+    return;
+  }
+
+  try {
+    const response = await fetch('http://localhost:8082/rest/register', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        username: form.username,
+        password: form.password,
+        email: form.email
+      })
+    });
+
+    if (response.ok) {
+      alert('註冊成功，請登入');
+      navigate('/login');
+    } else if (response.status === 409) {
+      alert('帳號已存在');
+    } else {
+      const result = await response.json();
+      alert('註冊失敗：' + result.message);
     }
-    // 模擬註冊成功，導向登入
-    alert('註冊成功');
-    navigate('/login');
-  };
+  } catch (error) {
+    alert('發生錯誤，請稍後再試');
+    console.error(error);
+  }
+};
 
   return (
     <div className="p-6 max-w-md mx-auto shadow-lg rounded bg-white">
