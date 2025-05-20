@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../auth/AuthContext';
 
 function RegisterPage() {
   const [form, setForm] = useState({
@@ -7,21 +8,10 @@ function RegisterPage() {
     email: '',
     password: '',
     confirmPassword: '',
-    captcha: ''
   });
-  const [captchaText, setCaptchaText] = useState(generateCaptcha());
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
-
-  function generateCaptcha() {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    return Array.from({ length: 5 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
-  }
-
-  const handleRefreshCaptcha = () => {
-    setCaptchaText(generateCaptcha());
-    setForm({ ...form, captcha: '' });
-  };
+  const { register } = useAuth(); // ✅ 從 context 呼叫後端 register
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -33,44 +23,35 @@ function RegisterPage() {
     if (!form.email.trim()) newErrors.email = '請輸入電子郵件';
     if (!form.password.trim()) newErrors.password = '請輸入密碼';
     if (form.password !== form.confirmPassword) newErrors.confirmPassword = '密碼不一致';
-    if (!form.captcha.trim()) newErrors.captcha = '請輸入驗證碼';
-    else if (form.captcha.toUpperCase() !== captchaText) newErrors.captcha = '驗證碼錯誤';
     return newErrors;
   };
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  const foundErrors = validate();
-  if (Object.keys(foundErrors).length > 0) {
-    setErrors(foundErrors);
-    return;
-  }
-
-  try {
-    const response = await fetch('http://localhost:8082/rest/register', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        username: form.username,
-        password: form.password,
-        email: form.email
-      })
-    });
-
-    if (response.ok) {
-      alert('註冊成功，請登入');
-      navigate('/login');
-    } else if (response.status === 409) {
-      alert('帳號已存在');
-    } else {
-      const result = await response.json();
-      alert('註冊失敗：' + result.message);
+    e.preventDefault();
+    const foundErrors = validate();
+    if (Object.keys(foundErrors).length > 0) {
+      setErrors(foundErrors);
+      return;
     }
-  } catch (error) {
-    alert('發生錯誤，請稍後再試');
-    console.error(error);
+
+    const result = await fetch('http://localhost:8082/health/register', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      username: form.username,
+      password: form.password,
+      email: form.email  
+    }),
+  });
+
+  if (result.ok) {
+    alert('註冊成功！請至信箱點擊驗證連結完成帳號啟用');
+    navigate('/login');
+  } else {
+    const resData = await result.json();
+    alert(resData.message);
   }
 };
 
@@ -78,78 +59,45 @@ function RegisterPage() {
     <div className="p-6 max-w-md mx-auto shadow-lg rounded bg-white">
       <h1 className="text-2xl font-bold mb-6 text-center">註冊</h1>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <div>
-          <input
-            type="text"
-            name="username"
-            placeholder="使用者名稱"
-            value={form.username}
-            onChange={handleChange}
-            className={`border p-2 rounded w-full ${errors.username ? 'border-red-500' : ''}`}
-          />
-          {errors.username && <p className="text-red-500 text-sm mt-1">{errors.username}</p>}
-        </div>
+        <input
+          type="text"
+          name="username"
+          placeholder="使用者名稱"
+          value={form.username}
+          onChange={handleChange}
+          className={`border p-2 rounded w-full ${errors.username ? 'border-red-500' : ''}`}
+        />
+        {errors.username && <p className="text-red-500 text-sm mt-1">{errors.username}</p>}
 
-        <div>
-          <input
-            type="email"
-            name="email"
-            placeholder="電子郵件"
-            value={form.email}
-            onChange={handleChange}
-            className={`border p-2 rounded w-full ${errors.email ? 'border-red-500' : ''}`}
-          />
-          {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
-        </div>
+        <input
+          type="email"
+          name="email"
+          placeholder="電子郵件"
+          value={form.email}
+          onChange={handleChange}
+          className={`border p-2 rounded w-full ${errors.email ? 'border-red-500' : ''}`}
+        />
+        {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
 
-        <div>
-          <input
-            type="password"
-            name="password"
-            placeholder="密碼"
-            value={form.password}
-            onChange={handleChange}
-            className={`border p-2 rounded w-full ${errors.password ? 'border-red-500' : ''}`}
-          />
-          {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
-        </div>
+        <input
+          type="password"
+          name="password"
+          placeholder="密碼"
+          value={form.password}
+          onChange={handleChange}
+          className={`border p-2 rounded w-full ${errors.password ? 'border-red-500' : ''}`}
+        />
+        {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
 
-        <div>
-          <input
-            type="password"
-            name="confirmPassword"
-            placeholder="確認密碼"
-            value={form.confirmPassword}
-            onChange={handleChange}
-            className={`border p-2 rounded w-full ${errors.confirmPassword ? 'border-red-500' : ''}`}
-          />
-          {errors.confirmPassword && <p className="text-red-500 text-sm mt-1">{errors.confirmPassword}</p>}
-        </div>
-
-        <div>
-          <label className="block mb-1">驗證碼</label>
-          <div className="flex items-center gap-2">
-            <div className="bg-gray-200 text-lg font-mono px-3 py-1 rounded select-none tracking-widest">
-              {captchaText}
-            </div>
-            <button
-              type="button"
-              onClick={handleRefreshCaptcha}
-              className="text-sm text-blue-500 hover:underline"
-            >
-              重新產生
-            </button>
-          </div>
-          <input
-            type="text"
-            name="captcha"
-            placeholder="請輸入驗證碼"
-            value={form.captcha}
-            onChange={handleChange}
-            className={`mt-2 border p-2 rounded w-full ${errors.captcha ? 'border-red-500' : ''}`}
-          />
-          {errors.captcha && <p className="text-red-500 text-sm mt-1">{errors.captcha}</p>}
-        </div>
+        <input
+          type="password"
+          name="confirmPassword"
+          placeholder="確認密碼"
+          value={form.confirmPassword}
+          onChange={handleChange}
+          className={`border p-2 rounded w-full ${errors.confirmPassword ? 'border-red-500' : ''}`}
+        />
+        {errors.confirmPassword && <p className="text-red-500 text-sm mt-1">{errors.confirmPassword}</p>}
 
         <button type="submit" className="bg-green-600 text-white py-2 rounded hover:bg-green-700">
           註冊

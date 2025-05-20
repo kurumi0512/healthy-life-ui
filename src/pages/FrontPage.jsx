@@ -5,21 +5,20 @@ import HealthSidebar from './HealthSidebar';
 function FrontPage() {
   const { user, logout } = useAuth();
   const allNews = [
-    { title: '糖尿病患要注意！這 5 種食物控血糖超有效', url: 'https://www.edh.tw/article/37784' },
-    { title: '多吃纖維就對了？醫師揭高纖飲食 3 大重點', url: 'https://www.edh.tw/article/29956' },
-    { title: '研究：快走也能抗老，每天只要這樣做', url: 'https://www.edh.tw/article/37435' },
-    { title: '控糖新研究：掌握這 1 招血糖穩定不飆升', url: 'https://www.healthnews.com.tw/article/65035' },
-    { title: '這樣吃才健康！醫師建議的晚餐 5 原則', url: 'https://heho.com.tw/archives/352917' },
-    { title: '上班久坐怎麼辦？這 3 招簡單拉筋舒壓', url: 'https://heho.com.tw/archives/353090' },
-    { title: '每天喝水的正確時機？醫師這樣建議', url: 'https://news.tvbs.com.tw/health/2866543' },
-    { title: '失眠別再忍！4 種食物幫助入睡', url: 'https://news.tvbs.com.tw/health/2865362' },
-    { title: '視力退化怎麼辦？保健這樣吃', url: 'https://news.tvbs.com.tw/health/2864748' },
-    { title: '壓力大會害你胖？研究揭壓力與肥胖關係', url: 'https://news.tvbs.com.tw/life/2855954' },
-    { title: '喝對水排毒又美顏，這時間最有效', url: 'https://heho.com.tw/archives/354983' },
-    { title: '關節退化警訊：5 種徵兆你中了幾項？', url: 'https://heho.com.tw/archives/351590' },
-    { title: '護眼妙招一次學起來！這些食物超給力', url: 'https://tw.news.yahoo.com/抗抗小怪獸-這些食物-幫眼睛補充維他命-024512990.html' },
-    { title: '炎夏怎麼補水才正確？營養師這樣說', url: 'https://today.line.me/tw/v2/article/LX3X2X2' },
-    { title: '早餐這樣吃血糖穩、體重不飆升', url: 'https://www.fanhealth.com.tw/front/article/detail?id=1718' },
+    { title: '小吃店常見青菜是美國營養師首選！', url: 'https://www.edh.tw/article/37784' },
+    { title: '經常脹氣怎麼辦？這些低FODMAP食品可多吃！', url: 'https://www.edh.tw/article/29956' },
+    { title: '自助餐夾這些菜是高油熱量炸彈！', url: 'https://www.edh.tw/article/37435' },
+    { title: '為何蛋白那麼重要?', url: 'https://www.healthnews.com.tw/article/65035' },
+    { title: '延緩老化吃木瓜！營養師推 4 水果：助控血糖、也助眠', url: 'https://heho.com.tw/archives/352917' },
+    { title: '不只油炸食物！　吃太快、防腐劑都是造成肥胖的幕後黑手', url: 'https://heho.com.tw/archives/353090' },
+    { title: '中年發福真凶抓到了！　國際期刊揭節食運動仍變胖關鍵原因', url: 'https://news.tvbs.com.tw/health/2866543' },
+    { title: '早餐店必點！醫揭「4大地雷早餐」越吃越肥', url: 'https://news.tvbs.com.tw/health/2865362' },
+    { title: '3顆馬鈴薯=1片三角形蛋糕！營養師曝：減肥好朋友', url: 'https://news.tvbs.com.tw/health/2864748' },
+    { title: '身體缺「4維他命」易變胖！', url: 'https://news.tvbs.com.tw/life/2855954' },
+    { title: '大腦抗發炎、防老化吃 5 類食物！', url: 'https://heho.com.tw/archives/354983' },
+    { title: 'Omega-3 有助延緩老化！', url: 'https://heho.com.tw/archives/351590' },
+    { title: '養生必學！營養師揭「7色蔬果」', url: 'https://today.line.me/tw/v2/article/LX3X2X2' },
+    { title: '預防肝癌！請小心飲食的「地雷」誤區', url: 'https://www.fanhealth.com.tw/front/article/detail?id=1718' },
   ];
 
   const [randomNews, setRandomNews] = useState([]);

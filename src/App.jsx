@@ -1,5 +1,5 @@
-import React from 'react';
-import { Routes, Route } from 'react-router-dom';  // 只需要引入 Routes 和 Route
+import React, { useEffect } from 'react';  // ← 記得引入 useEffect
+import { Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import LoginPage from './pages/LoginPage';
 import FrontPage from './pages/FrontPage';
@@ -11,6 +11,17 @@ import AdvicePage from './pages/AdvicePage';
 import RegisterPage from './pages/RegisterPage';
 
 function App() {
+
+  // 🔍 這裡放測試後端是否有連上
+  useEffect(() => {
+    fetch('http://localhost:8082/health/ping', {
+      credentials: 'include'
+    })
+      .then(res => res.text())
+      .then(data => console.log('✅ 後端連線成功：', data))
+      .catch(err => console.error('❌ 後端連線失敗：', err));
+  }, []);
+
   return (
     <>
       <Navbar />
@@ -25,7 +36,6 @@ function App() {
         <Route path="/register" element={<RegisterPage />} />
       </Routes>
     </>
-    
   );
 }
 

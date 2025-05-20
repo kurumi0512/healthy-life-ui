@@ -6,20 +6,14 @@ function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [captcha, setCaptcha] = useState('');
-  const [captchaText, setCaptchaText] = useState(generateCaptcha());
-
+  const [captchaImage, setCaptchaImage] = useState('http://localhost:8082/health/captcha'); // 預設圖片網址
   const [errors, setErrors] = useState({});
-
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  function generateCaptcha() {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    return Array.from({ length: 5 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
-  }
-
-  const handleRefreshCaptcha = () => {
-    setCaptchaText(generateCaptcha());
+  // ✅ 點擊驗證碼圖片會重新產生（避免瀏覽器快取）
+  const refreshCaptcha = () => {
+    setCaptchaImage(`http://localhost:8082/health/captcha?${Date.now()}`);
     setCaptcha('');
   };
 
@@ -30,81 +24,76 @@ function LoginPage() {
     if (!username.trim()) newErrors.username = '請輸入帳號';
     if (!password.trim()) newErrors.password = '請輸入密碼';
     if (!captcha.trim()) newErrors.captcha = '請輸入驗證碼';
-    else if (captcha.toUpperCase() !== captchaText) newErrors.captcha = '驗證碼錯誤';
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
     }
 
-    const result = await login({ username, password });
+    const result = await login({ username, password, captcha });
+
     if (result.success) {
       navigate('/');
     } else {
-      alert(result.message); // 顯示錯誤訊息
+      alert(result.message);
+      refreshCaptcha(); // 驗證碼錯誤時重新產生
     }
   };
-  
+
   return (
     <div className="p-6 max-w-md mx-auto shadow-lg rounded bg-white">
       <h1 className="text-2xl font-bold mb-6 text-center">會員登入</h1>
       <form onSubmit={handleLogin} className="flex flex-col gap-4">
-        <div>
-          <input
-            type="text"
-            placeholder="帳號"
-            className={`border p-2 rounded w-full ${errors.username ? 'border-red-500' : ''}`}
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-          />
-          {errors.username && <p className="text-red-500 text-sm mt-1">{errors.username}</p>}
-        </div>
+        {/* 帳號 */}
+        <input
+          type="text"
+          placeholder="帳號"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          className={`border p-2 rounded w-full ${errors.username ? 'border-red-500' : ''}`}
+        />
+        {errors.username && <p className="text-red-500 text-sm">{errors.username}</p>}
 
-        <div>
-          <input
-            type="password"
-            placeholder="密碼"
-            className={`border p-2 rounded w-full ${errors.password ? 'border-red-500' : ''}`}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-          {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
-        </div>
+        {/* 密碼 */}
+        <input
+          type="password"
+          placeholder="密碼"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className={`border p-2 rounded w-full ${errors.password ? 'border-red-500' : ''}`}
+        />
+        {errors.password && <p className="text-red-500 text-sm">{errors.password}</p>}
 
+        {/* 驗證碼區塊 */}
         <div>
-          <label className="block mb-1">驗證碼</label>
           <div className="flex items-center gap-2">
-            <div className="bg-gray-200 text-lg font-mono px-3 py-1 rounded select-none tracking-widest">
-              {captchaText}
-            </div>
-            <button
-              type="button"
-              onClick={handleRefreshCaptcha}
-              className="text-sm text-blue-500 hover:underline"
-            >
-              重新產生
-            </button>
+            <img
+              src={captchaImage}
+              alt="驗證碼"
+              className="w-28 h-10 border rounded"
+              onClick={refreshCaptcha}
+              style={{ cursor: 'pointer' }}
+            />
+            <span className="text-sm text-gray-500">點選圖片可以刷新</span>
           </div>
           <input
             type="text"
             placeholder="請輸入驗證碼"
-            className={`mt-2 border p-2 rounded w-full ${errors.captcha ? 'border-red-500' : ''}`}
             value={captcha}
             onChange={(e) => setCaptcha(e.target.value)}
+            className={`mt-2 border p-2 rounded w-full ${errors.captcha ? 'border-red-500' : ''}`}
           />
-          {errors.captcha && <p className="text-red-500 text-sm mt-1">{errors.captcha}</p>}
+          {errors.captcha && <p className="text-red-500 text-sm">{errors.captcha}</p>}
         </div>
 
+        {/* 登入按鈕 */}
         <button type="submit" className="bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
           登入
         </button>
+
         <div className="flex justify-between text-sm">
-          <a href="#" className="text-blue-500 hover:underline">
-            忘記密碼？
-          </a>
-          <a href="/register" className="text-blue-500 hover:underline">
-            註冊新帳號
-          </a>
+          <a href="#" className="text-blue-500 hover:underline">忘記密碼？</a>
+          <a href="/register" className="text-blue-500 hover:underline">註冊新帳號</a>
         </div>
       </form>
     </div>
