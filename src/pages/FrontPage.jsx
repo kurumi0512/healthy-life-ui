@@ -30,25 +30,26 @@ function FrontPage() {
   }, []);
 
   return (
+    
     <div className="flex flex-col lg:flex-row max-w-6xl mx-auto p-6 mt-8 gap-6">
       {/* 左邊：新聞清單 */}
       <div className="flex-1 bg-white rounded-lg shadow-md p-6">
         <h1 className="text-3xl font-bold text-blue-700 mb-4">Health News</h1>
         
          {/* ✅ 登入狀態區塊 */}
-          {user ? (
-            <div className="mb-4">
-              <p className="text-green-700">👋 嗨，{user}！歡迎回來</p>
-              <button
-                onClick={logout}
-                className="mt-2 bg-red-600 text-white py-1 px-3 rounded hover:bg-red-700"
-              >
-                登出
-              </button>
-            </div>
-          ) : (
-            <p className="text-gray-500 mb-4">尚未登入，請先登入以使用完整功能</p>
-          )}
+              {user ? (
+      <div className="mb-4">
+        <p className="text-green-700">👋 嗨，{user.username}！歡迎回來</p>
+        <button
+          onClick={logout}
+          className="mt-2 bg-red-600 text-white py-1 px-3 rounded hover:bg-red-700"
+        >
+          登出
+        </button>
+      </div>
+    ) : (
+      <p className="text-gray-500 mb-4">尚未登入，請先登入以使用完整功能</p>
+    )}
 
 
 

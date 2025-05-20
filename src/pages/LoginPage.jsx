@@ -6,12 +6,12 @@ function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [captcha, setCaptcha] = useState('');
-  const [captchaImage, setCaptchaImage] = useState('http://localhost:8082/health/captcha'); // 預設圖片網址
+  const [captchaImage, setCaptchaImage] = useState('http://localhost:8082/health/captcha');
   const [errors, setErrors] = useState({});
+
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  // ✅ 點擊驗證碼圖片會重新產生（避免瀏覽器快取）
   const refreshCaptcha = () => {
     setCaptchaImage(`http://localhost:8082/health/captcha?${Date.now()}`);
     setCaptcha('');
@@ -33,10 +33,11 @@ function LoginPage() {
     const result = await login({ username, password, captcha });
 
     if (result.success) {
-      navigate('/');
+      console.log('✅ 登入成功，導向首頁');
+      navigate('/', { replace: true }); // ✅ 登入成功後直接導頁（取代歷史）
     } else {
       alert(result.message);
-      refreshCaptcha(); // 驗證碼錯誤時重新產生
+      refreshCaptcha(); // ❗登入失敗時刷新驗證碼
     }
   };
 
@@ -64,7 +65,7 @@ function LoginPage() {
         />
         {errors.password && <p className="text-red-500 text-sm">{errors.password}</p>}
 
-        {/* 驗證碼區塊 */}
+        {/* 驗證碼 */}
         <div>
           <div className="flex items-center gap-2">
             <img

@@ -77,7 +77,7 @@ function Navbar() {
         <div className="flex items-center gap-4 hidden md:flex">
           {user ? (
             <>
-              <span className="text-gray-700">您好，{user.name}</span>
+              <span className="text-gray-700">您好，{user.username}</span>
               <button
                 onClick={handleLogout}
                 className="bg-red-500 text-white px-3 py-1 rounded"

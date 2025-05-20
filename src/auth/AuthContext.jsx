@@ -18,6 +18,7 @@ export const AuthProvider = ({ children }) => {
       const result = await response.json();
 
       if (response.ok) {
+        console.log("✅ 登入成功，後端回傳 user：", result.user); 
         setUser(result.user);
         return { success: true };
       } else {
