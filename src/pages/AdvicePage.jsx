@@ -13,7 +13,7 @@ function AdvicePage() {
     setAdvice("");
     setLoading(true);
 
-    const url = `http://localhost:8080/health/advice-stream?height=${height}&weight=${weight}&age=${age}&goal=${goal}`;
+    const url = `http://localhost:8082/rest/health/advice-stream?height=${height}&weight=${weight}&age=${age}&goal=${goal}`;
     const eventSource = new EventSource(url);
 
     eventSource.onmessage = (event) => {

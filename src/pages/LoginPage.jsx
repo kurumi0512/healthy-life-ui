@@ -6,14 +6,14 @@ function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [captcha, setCaptcha] = useState('');
-  const [captchaImage, setCaptchaImage] = useState('http://localhost:8082/health/captcha');
+  const [captchaImage, setCaptchaImage] = useState('http://localhost:8082/rest/health/captcha');
   const [errors, setErrors] = useState({});
 
   const { login, user } = useAuth(); // ✅ 加入 user 狀態
   const navigate = useNavigate();
 
   const refreshCaptcha = () => {
-    setCaptchaImage(`http://localhost:8082/health/captcha?${Date.now()}`);
+    setCaptchaImage(`http://localhost:8082/rest/health/captcha?${Date.now()}`);
     setCaptcha('');
   };
 

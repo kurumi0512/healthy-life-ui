@@ -8,7 +8,7 @@ export const AuthProvider = ({ children }) => {
   // ✅ 登入：帳密 + 驗證碼
   const login = async ({ username, password, captcha }) => {
     try {
-      const response = await fetch('http://localhost:8082/health/login', {
+      const response = await fetch('http://localhost:8082/rest/health/login', {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -32,7 +32,7 @@ export const AuthProvider = ({ children }) => {
   // ✅ 註冊（會觸發後端發送 email 驗證）
   const register = async ({ username, password, email }) => {
     try {
-      const response = await fetch('http://localhost:8082/health/register', {
+      const response = await fetch('http://localhost:8082/rest/health/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password, email })
@@ -52,7 +52,7 @@ export const AuthProvider = ({ children }) => {
 
   // ✅ 登出
   const logout = async () => {
-    await fetch('http://localhost:8082/health/logout', {
+    await fetch('http://localhost:8082/rest/health/logout', {
       method: 'POST',
       credentials: 'include'
     });
@@ -61,7 +61,7 @@ export const AuthProvider = ({ children }) => {
 
   // ✅ 初次進站，自動檢查 session 是否已登入
     useEffect(() => {
-    fetch('http://localhost:8082/health/user', {
+    fetch('http://localhost:8082/rest/health/user', {
       credentials: 'include'
     })
       .then(res => {
