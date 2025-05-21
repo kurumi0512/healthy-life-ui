@@ -9,7 +9,7 @@ function LoginPage() {
   const [captchaImage, setCaptchaImage] = useState('http://localhost:8082/health/captcha');
   const [errors, setErrors] = useState({});
 
-  const { login } = useAuth();
+  const { login, user } = useAuth(); // ✅ 加入 user 狀態
   const navigate = useNavigate();
 
   const refreshCaptcha = () => {
@@ -34,7 +34,15 @@ function LoginPage() {
 
     if (result.success) {
       console.log('✅ 登入成功，導向首頁');
-      navigate('/', { replace: true }); // ✅ 登入成功後直接導頁（取代歷史）
+
+      // ✅ 等待 user 狀態更新後再導頁
+      setTimeout(() => {
+        if (user?.role === "ADMIN") {
+          navigate("/admin/dashboard");
+        } else {
+          navigate("/home");
+        }
+      }, 300);
     } else {
       alert(result.message);
       refreshCaptcha(); // ❗登入失敗時刷新驗證碼

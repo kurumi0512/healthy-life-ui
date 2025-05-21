@@ -60,13 +60,21 @@ export const AuthProvider = ({ children }) => {
   };
 
   // ✅ 初次進站，自動檢查 session 是否已登入
-  useEffect(() => {
+    useEffect(() => {
     fetch('http://localhost:8082/health/user', {
       credentials: 'include'
     })
-      .then(res => (res.ok ? res.json() : null))
+      .then(res => {
+        if (!res.ok) throw new Error("未登入");
+        return res.json();
+      })
       .then(data => {
+        console.log("目前登入狀態", data);
         if (data?.user) setUser(data.user);
+      })
+      .catch(err => {
+        console.log("❌ 尚未登入或 session 已失效");
+        setUser(null);
       });
   }, []);
 
