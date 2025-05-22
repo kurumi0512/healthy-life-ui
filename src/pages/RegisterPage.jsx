@@ -27,33 +27,28 @@ function RegisterPage() {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    const foundErrors = validate();
-    if (Object.keys(foundErrors).length > 0) {
-      setErrors(foundErrors);
-      return;
-    }
+  e.preventDefault();
+  const foundErrors = validate();
+  if (Object.keys(foundErrors).length > 0) {
+    setErrors(foundErrors);
+    return;
+  }
 
-    const result = await fetch('http://localhost:8082/health/register', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      username: form.username,
-      password: form.password,
-      email: form.email  
-    }),
+  // ✅ 改用 context 裡的 register（網址、credentials 都設定好了）
+  const result = await register({
+    username: form.username,
+    password: form.password,
+    email: form.email,
   });
 
-  if (result.ok) {
+  if (result.success) {
     alert('註冊成功！請至信箱點擊驗證連結完成帳號啟用');
     navigate('/login');
   } else {
-    const resData = await result.json();
-    alert(resData.message);
+    alert(result.message);
   }
 };
+
 
   return (
     <div className="p-6 max-w-md mx-auto shadow-lg rounded bg-white">
