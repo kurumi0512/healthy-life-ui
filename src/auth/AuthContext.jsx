@@ -30,22 +30,23 @@ export const AuthProvider = ({ children }) => {
   };
 
   // ✅ 註冊（會觸發後端發送 email 驗證）
-  const register = async ({ username, password, email }) => {
+  const register = async ({ username, password, confirmPassword, email }) => {
   try {
-    const response = await fetch('http://localhost:8082/rest/health/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include', // ✅ 這一行是關鍵
-      body: JSON.stringify({ username, password, email })
-    });
+    const response = await fetch(
+      'http://localhost:8082/rest/health/register',
+      {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        // ✅ 把 confirmPassword 也一起送給後端
+        body: JSON.stringify({ username, password, confirmPassword, email })
+      }
+    );
 
     const result = await response.json();
-
-    if (response.ok) {
-      return { success: true, message: result.message };
-    } else {
-      return { success: false, message: result.message };
-    }
+    return response.ok
+      ? { success: true, message: result.message }
+      : { success: false, message: result.message };
   } catch (error) {
     return { success: false, message: '註冊失敗，請稍後再試' };
   }
