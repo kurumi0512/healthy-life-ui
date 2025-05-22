@@ -7,27 +7,27 @@ export const AuthProvider = ({ children }) => {
 
   // ✅ 登入：帳密 + 驗證碼
   const login = async ({ username, password, captcha }) => {
-    try {
-      const response = await fetch('http://localhost:8082/rest/health/login', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password, captcha })
-      });
+  try {
+    const response = await fetch('http://localhost:8082/rest/health/login', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password, captcha })
+    });
 
-      const result = await response.json();
+    const result = await response.json();
 
-      if (response.ok) {
-        console.log("✅ 登入成功，後端回傳 user：", result.user); 
-        setUser(result.user);
-        return { success: true };
-      } else {
-        return { success: false, message: result.message };
-      }
-    } catch (error) {
-      return { success: false, message: '登入失敗，請稍後再試' };
+    if (response.ok) {
+      console.log("✅ 登入成功，後端回傳 user：", result.user);
+      setUser(result.user);
+      return { success: true, user: result.user }; // ✅ 加這個！
+    } else {
+      return { success: false, message: result.message };
     }
-  };
+  } catch (error) {
+    return { success: false, message: '登入失敗，請稍後再試' };
+  }
+};
 
   // ✅ 註冊（會觸發後端發送 email 驗證）
   const register = async ({ username, password, confirmPassword, email }) => {

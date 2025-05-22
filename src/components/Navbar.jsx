@@ -5,7 +5,6 @@ import { useAuth } from '../auth/AuthContext';
 function Navbar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-
   const [isOpen, setIsOpen] = useState(false);
 
   const navItemStyle = ({ isActive }) =>
@@ -68,6 +67,7 @@ function Navbar() {
           {user ? (
             <>
               <span className="text-gray-700">您好，{user.username}</span>
+              <NavLink to="/profile" className="text-blue-600 hover:underline">使用者設定</NavLink>
               <button
                 onClick={handleLogout}
                 className="bg-red-500 text-white px-3 py-1 rounded"
@@ -90,6 +90,7 @@ function Navbar() {
           {user ? (
             <>
               <span className="text-gray-700">您好，{user.username}</span>
+              <NavLink to="/profile" className="text-blue-600 hover:underline" onClick={handleLinkClick}>使用者設定</NavLink>
               <button
                 onClick={handleLogout}
                 className="bg-red-500 text-white px-3 py-1 rounded"

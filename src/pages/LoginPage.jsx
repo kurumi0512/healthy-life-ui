@@ -9,7 +9,7 @@ function LoginPage() {
   const [captchaImage, setCaptchaImage] = useState('http://localhost:8082/rest/health/captcha');
   const [errors, setErrors] = useState({});
 
-  const { login, user } = useAuth(); // ✅ 加入 user 狀態
+  const { login, user } = useAuth(); // ✅ user 狀態來自 context
   const navigate = useNavigate();
 
   const refreshCaptcha = () => {
@@ -33,14 +33,16 @@ function LoginPage() {
     const result = await login({ username, password, captcha });
 
     if (result.success) {
-      console.log('✅ 登入成功，導向首頁');
+      const user = result.user;
+      console.log('✅ 登入成功使用者資料：', user); // ✅ 檢查 userCompleted 是否存在
 
-      // ✅ 等待 user 狀態更新後再導頁
       setTimeout(() => {
-        if (user?.role === "ADMIN") {
+        if (user.role === "ADMIN") {
           navigate("/admin/dashboard");
+        } else if (!user.userCompleted) {
+          navigate("/profile"); // 👈 沒填過個人資料 → 導向會員中心
         } else {
-          navigate("/home");
+          navigate("/home"); // 👈 資料完整 → 進入主頁
         }
       }, 300);
     } else {
