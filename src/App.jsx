@@ -13,6 +13,8 @@ import AdvicePage from './pages/AdvicePage';
 import RegisterPage from './pages/RegisterPage';
 import VerifySuccess from './pages/VerifySuccess';
 import AdminDashboard from './pages/AdminDashboard'; // ✅ 新增管理者後台頁面
+import AdminUsersPage from './pages/AdminUsersPage';
+import AdminRoute from './components/AdminRoute';
 
 function App() {
   const { user } = useAuth(); // ✅ 從登入狀態取得登入者資訊
@@ -53,14 +55,17 @@ function App() {
         <Route path="/verify-success" element={<VerifySuccess />} />
 
         {/* ✅ 管理者專用頁面：需為 ADMIN 身份 */}
-        <Route
-          path="/admin/dashboard"
-          element={
-            <RequireAdmin>
-              <AdminDashboard />
-            </RequireAdmin>
-          }
-        />
+        <Route path="/admin" element={
+          <AdminRoute>
+            <AdminDashboard />
+          </AdminRoute>
+        } />
+
+        <Route path="/admin/users" element={
+          <AdminRoute>
+            <AdminUsersPage />
+          </AdminRoute>
+        } />
 
         {/* ✅ 沒有路徑時導回首頁 */}
         <Route path="*" element={<Navigate to="/" />} />
