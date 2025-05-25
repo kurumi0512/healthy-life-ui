@@ -181,40 +181,65 @@ const WeightRecordPage = () => {
                     </button>
                 )}
             </div>
-
-            <div className="mb-8 text-left">
-                <h3 className="mt-6 text-xl font-semibold text-gray-800">過往紀錄</h3>
-                <ul className="list-disc pl-6 mt-4 space-y-2">
-                    {weightRecords.map((record, index) => (
-                        <li key={index} className="text-gray-600 flex justify-between items-center">
-                            <div>
-                                {record.recordDate}: {record.weight} kg
-                            </div>
-                            <div className="space-x-2">
-                                <button
-                                    onClick={() => handleEdit(record)}
-                                    className="text-blue-500 hover:underline"
-                                >
-                                    編輯
-                                </button>
-                                <button
-                                    onClick={() => handleDelete(record.recordId)}
-                                    className="text-red-500 hover:underline"
-                                >
-                                    刪除
-                                </button>
-                            </div>
-                        </li>
-                    ))}
-                </ul>
-            </div>
-
+            
             {weightRecords.length > 0 && (
                 <div className="bg-gray-50 p-6 rounded-lg shadow-md">
                     <h3 className="text-xl font-semibold text-gray-800">體重曲線圖</h3>
                     <Line data={chartData} />
                 </div>
             )}
+
+
+            <div className="mb-8 text-left">
+                <h3 className="mt-6 text-xl font-semibold text-gray-800">過往紀錄</h3>
+                    <div className="space-y-4 mt-4">
+                        {weightRecords.slice(0, 5).map((record, index) => {
+                        const heightCm = parseFloat(record.height); // ✅ 用紀錄內的 height
+                        let bmi = null;
+                        let status = "";
+
+                        if (heightCm > 0) {
+                            const heightM = heightCm / 100;
+                            bmi = record.weight / (heightM * heightM);
+                            bmi = Math.round(bmi * 10) / 10;
+
+                            if (bmi < 18.5) status = "過輕";
+                            else if (bmi < 24) status = "正常";
+                            else if (bmi < 27) status = "過重";
+                            else status = "肥胖";
+                        }
+
+                        return (
+                            <div
+                            key={index}
+                            className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm flex justify-between items-center"
+                            >
+                            <div>
+                                <p className="text-gray-800 font-semibold">{record.recordDate}</p>
+                                <p className="text-lg text-gray-600">體重: {record.weight} kg</p>
+                                <p className="text-sm text-gray-500">BMI: {bmi ? `${bmi} (${status})` : "無法計算"}</p>
+                            </div>
+                            <div className="flex flex-col items-end space-y-2 text-sm">
+                                <button
+                                onClick={() => handleEdit(record)}
+                                className="text-blue-600 hover:underline"
+                                >
+                                編輯
+                                </button>
+                                <button
+                                onClick={() => handleDelete(record.recordId)}
+                                className="text-red-600 hover:underline"
+                                >
+                                刪除
+                                </button>
+                            </div>
+                            </div>
+                        );
+                        })}
+                    </div>
+                </div>
+
+            
 
             <div className="mt-8 text-center">
                 <img
