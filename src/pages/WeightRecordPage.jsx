@@ -11,6 +11,7 @@ const WeightRecordPage = () => {
     const [bmiStatus, setBmiStatus] = useState("");
     const [weightRecords, setWeightRecords] = useState([]);
     const [editingId, setEditingId] = useState(null); // 編輯中的紀錄 ID
+    const [successMessage, setSuccessMessage] = useState('');
 
     useEffect(() => {
         fetchRecentRecords();
@@ -38,13 +39,17 @@ const WeightRecordPage = () => {
     };
 
     const saveWeightRecord = async () => {
-        if (height && weight && age && bmi) {
+        if (height && weight && age) {
+            const heightCm = parseFloat(height);
+            const weightKg = parseFloat(weight);
+            const bmiValue = weightKg / ((heightCm / 100) ** 2);
+            
             try {
                 const data = {
-                    height,
-                    weight,
-                    age,
-                    bmi,
+                    height: heightCm,
+                    weight: weightKg,
+                    age: parseInt(age),
+                    bmi: bmiValue,
                     recordDate: new Date().toISOString().split("T")[0],
                 };
 
@@ -61,9 +66,15 @@ const WeightRecordPage = () => {
 
                 await fetchRecentRecords();
                 clearForm();
+                setSuccessMessage(`✅ 已自動計算 BMI：${bmiValue.toFixed(2)} 並儲存成功`);
+
+                // 2 秒後自動清除訊息
+                setTimeout(() => setSuccessMessage(''), 2000);
             } catch (err) {
                 console.error("儲存失敗", err);
             }
+        } else {
+            alert("❗請填寫身高、體重與年齡");
         }
     };
 
@@ -146,14 +157,6 @@ const WeightRecordPage = () => {
                         placeholder="輸入年齡"
                     />
                 </div>
-                <div className="flex items-center justify-center">
-                    <button
-                        onClick={calculateBmi}
-                        className="w-full md:w-auto mt-4 px-6 py-2 bg-blue-400 text-white rounded-lg hover:bg-blue-500 transition duration-300"
-                    >
-                        計算 BMI
-                    </button>
-                </div>
             </div>
 
             {bmi && (
@@ -164,7 +167,11 @@ const WeightRecordPage = () => {
                     </p>
                 </div>
             )}
-
+            {successMessage && (
+                <div className="bg-green-100 text-green-800 px-4 py-2 mb-4 rounded border border-green-300 text-sm">
+                    {successMessage}
+                </div>
+            )}
             <div className="mb-4 text-center">
                 <button
                     onClick={saveWeightRecord}
@@ -191,53 +198,59 @@ const WeightRecordPage = () => {
 
 
             <div className="mb-8 text-left">
-                <h3 className="mt-6 text-xl font-semibold text-gray-800">過往紀錄</h3>
+                <h3 className="mt-6 text-xl font-semibold text-gray-800">體重紀錄列表</h3>
+
+                {weightRecords.length === 0 ? (
+                    <p className="text-gray-500 text-center mt-4">尚無紀錄，請新增一筆體重資料  📝</p>
+                ) : (
                     <div className="space-y-4 mt-4">
-                        {weightRecords.slice(0, 5).map((record, index) => {
-                        const heightCm = parseFloat(record.height); // ✅ 用紀錄內的 height
+                    {weightRecords.slice(0, 5).map((record, index) => {
+                        const heightCm = parseFloat(record.height);
                         let bmi = null;
                         let status = "";
 
                         if (heightCm > 0) {
-                            const heightM = heightCm / 100;
-                            bmi = record.weight / (heightM * heightM);
-                            bmi = Math.round(bmi * 10) / 10;
+                        const heightM = heightCm / 100;
+                        bmi = record.weight / (heightM * heightM);
+                        bmi = Math.round(bmi * 10) / 10;
 
-                            if (bmi < 18.5) status = "過輕";
-                            else if (bmi < 24) status = "正常";
-                            else if (bmi < 27) status = "過重";
-                            else status = "肥胖";
+                        if (bmi < 18.5) status = "過輕";
+                        else if (bmi < 24) status = "正常";
+                        else if (bmi < 27) status = "過重";
+                        else status = "肥胖";
                         }
 
                         return (
-                            <div
+                        <div
                             key={index}
-                            className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm flex justify-between items-center"
-                            >
+                            className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm flex justify-between items-center transition-all duration-300 animate-fade-in"
+                        >
                             <div>
-                                <p className="text-gray-800 font-semibold">{record.recordDate}</p>
-                                <p className="text-lg text-gray-600">體重: {record.weight} kg</p>
-                                <p className="text-sm text-gray-500">BMI: {bmi ? `${bmi} (${status})` : "無法計算"}</p>
+                            <p className="text-gray-800 font-semibold">{record.recordDate}</p>
+                            <p className="text-lg text-gray-600">體重: {record.weight} kg</p>
+                            <p className="text-sm text-gray-500">BMI: {bmi ? `${bmi} (${status})` : "無法計算"}</p>
                             </div>
                             <div className="flex flex-col items-end space-y-2 text-sm">
-                                <button
+                            <button
                                 onClick={() => handleEdit(record)}
                                 className="text-blue-600 hover:underline"
-                                >
+                            >
                                 編輯
-                                </button>
-                                <button
+                            </button>
+                            <button
                                 onClick={() => handleDelete(record.recordId)}
                                 className="text-red-600 hover:underline"
-                                >
+                            >
                                 刪除
-                                </button>
+                            </button>
                             </div>
-                            </div>
+                        </div>
                         );
-                        })}
+                    })}
                     </div>
-                </div>
+                )}
+            </div>
+
 
             
 

@@ -200,7 +200,7 @@ function BPRecordPage() {
 
       {/* 血壓紀錄顯示區塊 */}
       <div className="mt-8">
-        <h3 className="text-xl font-semibold text-gray-800 mb-4">過往紀錄</h3>
+        <h3 className="text-xl font-semibold text-gray-800 mb-4">血壓紀錄列表</h3>
 
         {bpRecords.length === 0 ? (
           <p className="text-gray-500 text-center mt-4">尚無紀錄，請新增一筆血壓資料 🩺</p>
