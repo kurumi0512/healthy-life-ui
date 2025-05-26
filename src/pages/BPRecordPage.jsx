@@ -20,6 +20,7 @@ function BPRecordPage() {
   const [notes, setNotes] = useState('');
   const [bpRecords, setBpRecords] = useState([]);
   const [editingId, setEditingId] = useState(null);
+  const [showAllBp, setShowAllBp] = useState(false); // ➕ 是否顯示全部血壓紀錄
 
   useEffect(() => {
     fetchRecords();
@@ -27,7 +28,7 @@ function BPRecordPage() {
 
   const fetchRecords = async () => {
     try {
-      const res = await axios.get('http://localhost:8082/rest/health/bp/recent', {
+      const res = await axios.get('http://localhost:8082/rest/health/bp', {
         withCredentials: true
       });
       setBpRecords(res.data.data);
@@ -206,7 +207,7 @@ function BPRecordPage() {
           <p className="text-gray-500 text-center mt-4">尚無紀錄，請新增一筆血壓資料 🩺</p>
         ) : (
           <div className="space-y-4">
-            {bpRecords.slice(0, 5).map((record, index) => (
+            {(showAllBp ? bpRecords : bpRecords.slice(0, 5)).map((record, index) => (
               <div
                 key={index}
                 className="flex justify-between items-start p-4 rounded-lg shadow border border-gray-200 bg-white transition-all duration-300 animate-fade-in"
@@ -238,6 +239,17 @@ function BPRecordPage() {
           </div>
         )}
       </div>
+
+      {bpRecords.length > 5 && (
+        <div className="mt-4 text-center">
+          <button
+            onClick={() => setShowAllBp(!showAllBp)}
+            className="text-blue-600 hover:underline"
+          >
+            {showAllBp ? '顯示較少' : '顯示更多'}
+          </button>
+        </div>
+      )}
 
       {/* 插圖 */}
       <div className="mt-8 text-center">

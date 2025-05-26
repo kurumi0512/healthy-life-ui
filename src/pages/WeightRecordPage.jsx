@@ -12,6 +12,7 @@ const WeightRecordPage = () => {
     const [weightRecords, setWeightRecords] = useState([]);
     const [editingId, setEditingId] = useState(null); // 編輯中的紀錄 ID
     const [successMessage, setSuccessMessage] = useState('');
+    const [showAll, setShowAll] = useState(false); // ➕ 是否顯示全部
 
     useEffect(() => {
         fetchRecentRecords();
@@ -19,8 +20,8 @@ const WeightRecordPage = () => {
 
     const fetchRecentRecords = async () => {
         try {
-            const res = await axios.get("http://localhost:8082/rest/health/weight/recent", {
-                withCredentials: true,
+            const res = await axios.get("http://localhost:8082/rest/health/weight", {
+            withCredentials: true,
             });
             setWeightRecords(res.data.data);
         } catch (err) {
@@ -204,7 +205,7 @@ const WeightRecordPage = () => {
                     <p className="text-gray-500 text-center mt-4">尚無紀錄，請新增一筆體重資料  📝</p>
                 ) : (
                     <div className="space-y-4 mt-4">
-                    {weightRecords.slice(0, 5).map((record, index) => {
+                    {(showAll ? weightRecords : weightRecords.slice(0, 5)).map((record, index) => {
                         const heightCm = parseFloat(record.height);
                         let bmi = null;
                         let status = "";
@@ -251,7 +252,16 @@ const WeightRecordPage = () => {
                 )}
             </div>
 
-
+            {weightRecords.length > 5 && (
+                <div className="mt-4 text-center">
+                    <button
+                    onClick={() => setShowAll(!showAll)}
+                    className="text-blue-600 hover:underline"
+                    >
+                    {showAll ? '顯示較少' : '顯示更多'}
+                    </button>
+                </div>
+            )}
             
 
             <div className="mt-8 text-center">

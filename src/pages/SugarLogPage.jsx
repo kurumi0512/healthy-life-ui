@@ -24,6 +24,7 @@ function SugarLogPage() {
   const [records, setRecords] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const [warningMessages, setWarningMessages] = useState([]);
+  const [showAll, setShowAll] = useState(false); // ➕ 是否顯示全部
 
   useEffect(() => {
     fetchRecords();
@@ -211,7 +212,7 @@ function SugarLogPage() {
           <p className="text-gray-500 text-center">尚無紀錄，請新增資料 📝</p>
         ) : (
           <div className="space-y-4">
-            {records.slice(0, 5).map((r, i) => (
+            {(showAll ? records : records.slice(0, 5)).map((r, i) => (
               <div
                 key={i}
                 className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm flex justify-between items-center"
@@ -230,6 +231,17 @@ function SugarLogPage() {
           </div>
         )}
       </div>
+
+      {records.length > 5 && (
+        <div className="mt-4 text-center">
+          <button
+            onClick={() => setShowAll(!showAll)}
+            className="text-blue-600 hover:underline"
+          >
+            {showAll ? '顯示較少' : '顯示更多'}
+          </button>
+        </div>
+      )}
 
       {/* 插圖 */}
       <div className="mt-8 text-center">
