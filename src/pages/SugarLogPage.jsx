@@ -140,6 +140,7 @@ function SugarLogPage() {
             className="w-full px-4 py-2 mt-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
           />
         </div>
+        <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="block text-gray-700 text-sm font-medium">餐前血糖 (mg/dL)</label>
           <input
@@ -160,6 +161,7 @@ function SugarLogPage() {
             placeholder="輸入餐後血糖"
           />
         </div>
+      </div>
         <div className="md:col-span-2">
           <label className="block text-gray-700 text-sm font-medium">備註（可選）</label>
           <textarea

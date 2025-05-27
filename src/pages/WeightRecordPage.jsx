@@ -228,7 +228,7 @@ const WeightRecordPage = () => {
                         >
                             <div>
                             <p className="text-gray-800 font-semibold">{record.recordDate}</p>
-                            <p className="text-lg text-gray-600">體重: {record.weight} kg</p>
+                            <p className="text-base text-gray-600">體重: {record.weight} kg</p>
                             <p className="text-sm text-gray-500">BMI: {bmi ? `${bmi} (${status})` : "無法計算"}</p>
                             </div>
                             <div className="flex flex-col items-end space-y-2 text-sm">

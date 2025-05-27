@@ -20,7 +20,7 @@ function BPRecordPage() {
   const [notes, setNotes] = useState('');
   const [bpRecords, setBpRecords] = useState([]);
   const [editingId, setEditingId] = useState(null);
-  const [showAllBp, setShowAllBp] = useState(false); // ➕ 是否顯示全部血壓紀錄
+  const [showAllBp, setShowAllBp] = useState(false);
 
   useEffect(() => {
     fetchRecords();
@@ -92,23 +92,33 @@ function BPRecordPage() {
     }
   };
 
-  const getBPStatusInfo = () => {
-    const sys = parseInt(systolic);
-    const dia = parseInt(diastolic);
+  const getBPStatusFromValues = (sys, dia) => {
     if (!sys || !dia) return { message: '', color: '' };
 
     if (sys > 140 || dia > 90) {
-      return { message: '⚠️ 血壓偏高（建議就醫）', color: 'text-red-600' };
+      return {
+        message: '😰 血壓偏高，建議儘快就醫並調整作息',
+        color: 'text-red-500'
+      };
     } else if (sys >= 120 || dia >= 80) {
-      return { message: '⚠️ 血壓略高（高血壓前期）', color: 'text-yellow-600' };
+      return {
+        message: '⚠️ 血壓略高，請持續注意飲食與壓力',
+        color: 'text-yellow-500'
+      };
     } else if (sys < 90 || dia < 60) {
-      return { message: '⚠️ 血壓偏低（注意身體狀況）', color: 'text-orange-600' };
+      return {
+        message: '🥴 血壓偏低，請補充水分並注意身體反應',
+        color: 'text-orange-500'
+      };
     } else {
-      return { message: '✅ 血壓正常', color: 'text-green-600' };
+      return {
+        message: '🌿 血壓正常，請繼續保持良好生活習慣！',
+        color: 'text-green-400'
+      };
     }
   };
 
-  const status = getBPStatusInfo();
+  const status = getBPStatusFromValues(systolic, diastolic);
 
   const chartData = {
     labels: bpRecords.map((record) => record.recordDate),
@@ -188,7 +198,9 @@ function BPRecordPage() {
 
       {/* 即時判斷 */}
       {status.message && (
-        <div className={`text-sm font-medium mt-2 ${status.color}`}>{status.message}</div>
+        <div className={`text-sm px-3 py-2 rounded ${status.color} ${status.bgColor}`}>
+          {status.message}
+        </div>
       )}
 
       {/* 圖表區塊 */}
@@ -207,54 +219,54 @@ function BPRecordPage() {
           <p className="text-gray-500 text-center mt-4">尚無紀錄，請新增一筆血壓資料 🩺</p>
         ) : (
           <div className="space-y-4">
-            {(showAllBp ? bpRecords : bpRecords.slice(0, 5)).map((record, index) => (
-              <div
-                key={index}
-                className="flex justify-between items-start p-4 rounded-lg shadow border border-gray-200 bg-white transition-all duration-300 animate-fade-in"
-              >
-                <div>
-                  <p className="font-semibold text-gray-800">
-                    {record.recordDate}: {record.systolic}/{record.diastolic} mmHg
-                  </p>
-                  {record.notes && (
-                    <p className="text-sm text-gray-500 mt-1">備註：{record.notes}</p>
-                  )}
+            {(showAllBp ? bpRecords : bpRecords.slice(0, 5)).map((record, index) => {
+              const status = getBPStatusFromValues(record.systolic, record.diastolic);
+              return (
+                <div
+                  key={index}
+                  className="flex justify-between items-start p-4 rounded-lg shadow border border-gray-200 bg-white transition-all duration-300 animate-fade-in"
+                >
+                  <div>
+                    <div className="text-gray-800">
+                      <p className="text-gray-800 font-semibold">{record.recordDate}</p>
+                      <p className="text-sm text-gray-600">
+                      收縮壓：{record.systolic}、舒張壓：{record.diastolic} mmHg
+                      </p>
+                    </div>
+                    {record.notes && (
+                      <p className="text-sm text-gray-500 mt-1">備註：{record.notes}</p>
+                    )}
+                  </div>
+                  <div className="text-sm text-right space-x-2 whitespace-nowrap">
+                    <button onClick={() => handleEdit(record)} className="text-blue-600 hover:underline">
+                      編輯
+                    </button>
+                    <button onClick={() => handleDelete(record.recordId)} className="text-red-600 hover:underline">
+                      刪除
+                    </button>
+                  </div>
                 </div>
-                <div className="text-sm text-right space-x-2 whitespace-nowrap">
-                  <button
-                    onClick={() => handleEdit(record)}
-                    className="text-blue-600 hover:underline"
-                  >
-                    編輯
-                  </button>
-                  <button
-                    onClick={() => handleDelete(record.recordId)}
-                    className="text-red-600 hover:underline"
-                  >
-                    刪除
-                  </button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
-      </div>
 
-      {bpRecords.length > 5 && (
-        <div className="mt-4 text-center">
-          <button
-            onClick={() => setShowAllBp(!showAllBp)}
-            className="text-blue-600 hover:underline"
-          >
-            {showAllBp ? '顯示較少' : '顯示更多'}
-          </button>
+        {bpRecords.length > 5 && (
+          <div className="mt-4 text-center">
+            <button
+              onClick={() => setShowAllBp(!showAllBp)}
+              className="text-blue-600 hover:underline"
+            >
+              {showAllBp ? '顯示較少' : '顯示更多'}
+            </button>
+          </div>
+        )}
+
+        {/* 插圖 */}
+        <div className="mt-8 text-center">
+          <img src="/cat.png" alt="血壓紀錄" className="mx-auto w-80 rounded-lg" />
+          <p className="mt-4 text-gray-600">保持健康的血壓，關注每一天！</p>
         </div>
-      )}
-
-      {/* 插圖 */}
-      <div className="mt-8 text-center">
-        <img src="/cat.png" alt="血壓紀錄" className="mx-auto w-80 rounded-lg" />
-        <p className="mt-4 text-gray-600">保持健康的血壓，關注每一天！</p>
       </div>
     </div>
   );
