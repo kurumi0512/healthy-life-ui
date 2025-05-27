@@ -1,4 +1,7 @@
 import React, { useState } from "react";
+import ReactMarkdown from "react-markdown";
+import { EventSourcePolyfill } from 'event-source-polyfill';
+
 
 function AdvicePage() {
   const [height, setHeight] = useState("");
@@ -9,40 +12,79 @@ function AdvicePage() {
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = (e) => {
-    e.preventDefault();
-    setAdvice("");
-    setLoading(true);
+  e.preventDefault();
 
-    const url = `http://localhost:8082/rest/health/advice-stream?height=${height}&weight=${weight}&age=${age}&goal=${goal}`;
-    const eventSource = new EventSource(url);
+  if (!height || !weight || !age || !goal) {
+    alert("請填寫完整的身高、體重、年齡與健康目標！");
+    return;
+  }
 
-    eventSource.onmessage = (event) => {
-      const chars = event.data.split("");
-      let index = 0;
+  setAdvice("");
+  setLoading(true);
 
-      const typeChar = () => {
-        if (index < chars.length) {
-          setAdvice((prev) => prev + chars[index]);
-          index++;
-          setTimeout(typeChar, 15);
-        }
-      };
+  const url = `http://localhost:8082/rest/health/healthAI/advice-stream?height=${height}&weight=${weight}&age=${age}&goal=${goal}`;
+  console.log("送出的請求 URL：", url);
 
-      typeChar();
-    };
+  // ✅ 使用 EventSourcePolyfill 並開啟 cookie 傳遞
+  const eventSource = new EventSourcePolyfill(url, {
+    withCredentials: true
+  });
 
-    eventSource.onerror = (err) => {
-      console.error("SSE error:", err);
+  let fullText = "";
+
+  eventSource.onmessage = (event) => {
+    const data = event.data;
+
+    if (!data || data === "undefined") return;
+
+    if (data === "[DONE]") {
       eventSource.close();
-      setLoading(false);
-    };
+      setAdvice(""); // 清空舊文字
+      typeCharByChar(fullText); // 播放動畫（完畢後 setLoading(false)）
+      return;
+    }
 
-    eventSource.addEventListener("end", () => {
-      eventSource.close();
-      setLoading(false);
-    });
+    fullText += data;
   };
 
+  eventSource.onerror = (err) => {
+    console.error("SSE error:", err);
+    eventSource.close();
+    setLoading(false);
+  };
+
+  // 第二階段：打字機效果
+  const typeCharByChar = (text) => {
+  const lines = text.split('\n'); // ⬅️ 拆成一行一行
+    let lineIndex = 0;
+    let charIndex = 0;
+    let currentLine = '';
+
+    const typeNextChar = () => {
+      if (lineIndex >= lines.length) {
+        setLoading(false); // 播完後關閉 loading
+        return;
+      }
+
+      const line = lines[lineIndex];
+      if (charIndex < line.length) {
+        currentLine += line[charIndex];
+        charIndex++;
+        setAdvice((prev) => prev + line[charIndex - 1]); // 加入目前字元
+        setTimeout(typeNextChar, 20);
+      } else {
+        // 行結束，加上換行，處理下一行
+        setAdvice((prev) => prev + '\n\n');
+        lineIndex++;
+        charIndex = 0;
+        currentLine = '';
+        setTimeout(typeNextChar, 300); // 換行延遲
+      }
+    };
+
+    typeNextChar();
+  };
+};
   return (
     <div className="max-w-xl mx-auto p-6">
       <h2 className="text-2xl font-bold mb-4 text-center">AI 健康建議生成器</h2>
@@ -102,12 +144,35 @@ function AdvicePage() {
         </button>
       </form>
 
-      <div className="mt-6">
-        <h3 className="text-lg font-semibold mb-2">AI 建議結果：</h3>
-        <div className="whitespace-pre-wrap border border-gray-300 rounded p-4 min-h-[150px] bg-gray-50">
-          {advice}
+      {loading && (
+        <div className="flex items-center space-x-2 mb-4">
+          <svg
+            className="animate-spin h-5 w-5 text-blue-600"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8v8H4z"
+            />
+          </svg>
+          <span className="text-blue-600">AI 正在生成建議中...</span>
         </div>
-      </div>
+      )}
+
+      {!loading && advice && (
+        <p className="text-green-600 mt-2">✅ AI 建議已完成</p>
+      )}
+
+      {/* ✅ 建議顯示區塊：請務必加上 */}
+      {advice && (
+        <div className="whitespace-pre-wrap break-words border border-gray-300 rounded p-4 bg-gray-50 max-h-[600px] overflow-y-auto leading-relaxed text-[15px]">
+          <ReactMarkdown>{advice}</ReactMarkdown>
+        </div>
+      )}
     </div>
   );
 }
