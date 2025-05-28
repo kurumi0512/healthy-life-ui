@@ -39,12 +39,16 @@ function AdvicePage() {
 
     if (data === "[DONE]") {
       eventSource.close();
-      setAdvice(""); // 清空舊文字
-      typeCharByChar(fullText); // 播放動畫（完畢後 setLoading(false)）
+      setLoading(false);
       return;
     }
 
-    fullText += data;
+    // 將句點後的•前加上換行（處理 Markdown 格式）
+    const formattedData = data
+      .replace(/•/g, '\n\n•')       // 段落開頭前先換行
+      .replace(/\n/g, '\n\n');      // 再保險一層處理 \n -> \n\n
+
+    setAdvice((prev) => prev + formattedData);
   };
 
   eventSource.onerror = (err) => {
