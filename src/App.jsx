@@ -14,31 +14,28 @@ import RegisterPage from './pages/RegisterPage';
 import VerifySuccess from './pages/VerifySuccess';
 import AdminDashboard from './pages/AdminDashboard'; // ✅ 新增管理者後台頁面
 import AdminUsersPage from './pages/AdminUsersPage';
-import AdminRoute from './components/AdminRoute';
+
+function ProtectedRoute({ children }) {
+  const { user, loading } = useAuth();
+
+  if (loading) return <div>載入中...</div>;
+  if (!user) return <Navigate to="/login" />;
+  return children;
+}
+
+function AdminRoute({ children }) {
+  const { user, loading } = useAuth();
+
+  if (loading) return <div>載入中...</div>;
+  if (!user) return <Navigate to="/login" />;
+  if (user.role !== "ADMIN") return <Navigate to="/" />;
+  return children;
+}
 
 function App() {
-  const { user } = useAuth(); // ✅ 從登入狀態取得登入者資訊
+  const { loading } = useAuth();
 
-  // ✅ 權限保護元件：僅允許 ADMIN 進入
-  const RequireAdmin = ({ children }) => {
-    if (!user) {
-      return <Navigate to="/login" replace />;
-    }
-    if (user.role !== "ADMIN") {
-      return <Navigate to="/" replace />;
-    }
-    return children;
-  };
-
-  // ✅ 檢查後端是否連線（開發測試用）
-  useEffect(() => {
-    fetch('http://localhost:8082/health/ping', {
-      credentials: 'include'
-    })
-      .then(res => res.text())
-      .then(data => console.log('✅ 後端連線成功：', data))
-      .catch(err => console.error('❌ 後端連線失敗：', err));
-  }, []);
+  if (loading) return <div>載入中...</div>;
 
   return (
     <>
@@ -46,28 +43,21 @@ function App() {
       <Routes>
         <Route path="/" element={<FrontPage />} />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/profile" element={<ProfilePage />} />
-        <Route path="/weight" element={<WeightRecordPage />} />
-        <Route path="/blood-pressure" element={<BPRecordPage />} />
-        <Route path="/blood-sugar" element={<SugarLogPage />} />
-        <Route path="/advice" element={<AdvicePage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/verify-success" element={<VerifySuccess />} />
 
-        {/* ✅ 管理者專用頁面：需為 ADMIN 身份 */}
-        <Route path="/admin" element={
-          <AdminRoute>
-            <AdminDashboard />
-          </AdminRoute>
-        } />
+        {/* 需登入的頁面 */}
+        <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+        <Route path="/weight" element={<ProtectedRoute><WeightRecordPage /></ProtectedRoute>} />
+        <Route path="/blood-pressure" element={<ProtectedRoute><BPRecordPage /></ProtectedRoute>} />
+        <Route path="/blood-sugar" element={<ProtectedRoute><SugarLogPage /></ProtectedRoute>} />
+        <Route path="/advice" element={<ProtectedRoute><AdvicePage /></ProtectedRoute>} />
 
-        <Route path="/admin/users" element={
-          <AdminRoute>
-            <AdminUsersPage />
-          </AdminRoute>
-        } />
+        {/* 管理員專用頁面 */}
+        <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+        <Route path="/admin/users" element={<AdminRoute><AdminUsersPage /></AdminRoute>} />
 
-        {/* ✅ 沒有路徑時導回首頁 */}
+        {/* 其他路徑導回首頁 */}
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </>

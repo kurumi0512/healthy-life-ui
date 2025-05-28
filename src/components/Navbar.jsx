@@ -12,9 +12,9 @@ function Navbar() {
       ? 'text-blue-600 font-bold border-b-2 border-blue-600'
       : 'text-gray-600 hover:text-blue-600';
 
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
+  const handleLogout = async () => {
+    await logout();     // 等待後端完成登出、session 清除
+    navigate('/');      // 登出後導回首頁
   };
 
   const handleLinkClick = () => {

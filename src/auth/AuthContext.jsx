@@ -1,11 +1,12 @@
+import React from 'react';
 import { createContext, useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const navigate = useNavigate();
+  const [user, setUser] = useState(null);     // 儲存登入者資料
+  const [loading, setLoading] = useState(true); // 👈 登入狀態載入中
 
   // ✅ 登入：帳密 + 驗證碼
   const login = async ({ username, password, captcha }) => {
@@ -65,31 +66,32 @@ export const AuthProvider = ({ children }) => {
 
   // ✅ 初次進站，自動檢查 session 是否已登入
     useEffect(() => {
-    fetch('http://localhost:8082/rest/health/user', {
-      credentials: 'include'
-    })
-      .then(res => {
-        if (!res.ok) throw new Error("未登入");
-        return res.json();
+      fetch('http://localhost:8082/rest/health/user', {
+        credentials: 'include'
       })
-      .then(data => {
-        console.log("目前登入狀態", data);
-        if (data?.user) {
-          setUser(data.user);
-        } else {
+        .then(res => {
+          if (!res.ok) throw new Error("未登入");
+          return res.json();
+        })
+        .then(data => {
+          console.log("目前登入狀態", data);
+          if (data?.user) {
+            setUser(data.user);
+          } else {
+            setUser(null);
+          }
+        })
+        .catch(err => {
+          console.log("❌ 尚未登入或 session 已失效");
           setUser(null);
-          navigate("/login"); // ✅ 未登入導回登入頁
-        }
-      })
-      .catch(err => {
-        console.log("❌ 尚未登入或 session 已失效");
-        setUser(null);
-        navigate("/login"); // ✅ 加這行會導回登入頁
-      });
-  }, []);
+        })
+        .finally(() => {
+          setLoading(false); // ✅ ➕這一行，畫面才會跳離「載入中...」
+        });
+    }, []);
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, register }}>
+    <AuthContext.Provider value={{ user, setUser, loading, login, logout, register }}>
       {children}
     </AuthContext.Provider>
   );
