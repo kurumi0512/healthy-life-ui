@@ -73,7 +73,7 @@ function RegisterPage() {
   };
 
   return (
-    <div className="p-6 max-w-md mx-auto shadow-lg rounded bg-white">
+    <div className="p-6 pt-24 max-w-md mx-auto shadow-lg rounded bg-white">
       <h1 className="text-2xl font-bold mb-6 text-center">註冊</h1>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <input

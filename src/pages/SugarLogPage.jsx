@@ -126,7 +126,7 @@ function SugarLogPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto mt-5 p-8 bg-white rounded-lg shadow-lg">
+    <div className="max-w-4xl mx-auto mt-5 p-8 pt-24 bg-white rounded-lg shadow-lg">
       <h1 className="text-3xl font-semibold text-center text-gray-800 mb-6">血糖紀錄</h1>
 
       {/* 表單區塊 */}
@@ -247,7 +247,7 @@ function SugarLogPage() {
 
       {/* 插圖 */}
       <div className="mt-8 text-center">
-        <img src="/cat.png" alt="血糖紀錄" className="mx-auto w-80 rounded-lg" />
+        <img src="/fight.png" alt="血糖紀錄" className="mx-auto w-80 rounded-lg" />
         <p className="mt-4 text-gray-600">關注血糖變化，邁向更健康的生活！</p>
       </div>
     </div>

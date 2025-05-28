@@ -52,7 +52,7 @@ function LoginPage() {
   };
 
   return (
-    <div className="p-6 max-w-md mx-auto shadow-lg rounded bg-white">
+    <div className="p-6 pt-24 max-w-md mx-auto shadow-lg rounded bg-white">
       <h1 className="text-2xl font-bold mb-6 text-center">會員登入</h1>
       <form onSubmit={handleLogin} className="flex flex-col gap-4">
         {/* 帳號 */}
@@ -104,7 +104,12 @@ function LoginPage() {
 
         <div className="flex justify-between text-sm">
           <a href="#" className="text-blue-500 hover:underline">忘記密碼？</a>
-          <a href="/register" className="text-blue-500 hover:underline">註冊新帳號</a>
+          <span
+            onClick={() => navigate('/register')}
+            className="text-blue-500 hover:underline cursor-pointer"
+          >
+            註冊新帳號
+          </span>
         </div>
       </form>
     </div>

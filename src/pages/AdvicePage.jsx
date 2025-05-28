@@ -90,7 +90,7 @@ function AdvicePage() {
   };
 };
   return (
-    <div className="max-w-xl mx-auto p-6">
+    <div className="max-w-xl mx-auto p-6 pt-24">
       <h2 className="text-2xl font-bold mb-4 text-center">AI 健康建議生成器</h2>
 
       <form onSubmit={handleSubmit} className="space-y-4">

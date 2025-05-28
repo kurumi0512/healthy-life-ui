@@ -31,7 +31,7 @@ function FrontPage() {
 
   return (
     
-    <div className="flex flex-col lg:flex-row max-w-6xl mx-auto p-6 mt-8 gap-6">
+    <div className="flex flex-col lg:flex-row max-w-6xl mx-auto p-6 pt-24 mt-8 gap-6">
       {/* 左邊：新聞清單 */}
       <div className="flex-1 bg-white rounded-lg shadow-md p-6">
         <h1 className="text-3xl font-bold text-blue-700 mb-4">Health News</h1>

@@ -1,9 +1,11 @@
 import { createContext, useContext, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const navigate = useNavigate();
 
   // ✅ 登入：帳密 + 驗證碼
   const login = async ({ username, password, captcha }) => {
@@ -72,11 +74,17 @@ export const AuthProvider = ({ children }) => {
       })
       .then(data => {
         console.log("目前登入狀態", data);
-        if (data?.user) setUser(data.user);
+        if (data?.user) {
+          setUser(data.user);
+        } else {
+          setUser(null);
+          navigate("/login"); // ✅ 未登入導回登入頁
+        }
       })
       .catch(err => {
         console.log("❌ 尚未登入或 session 已失效");
         setUser(null);
+        navigate("/login"); // ✅ 加這行會導回登入頁
       });
   }, []);
 

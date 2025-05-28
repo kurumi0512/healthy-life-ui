@@ -22,7 +22,7 @@ function Navbar() {
   };
 
   return (
-    <nav className="bg-white shadow p-4">
+    <nav className="fixed top-0 w-full z-50 bg-white shadow p-4">
       <div className="container mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
         {/* 左側 LOGO 或標題 */}
         <div className="flex justify-between w-full md:w-auto">
