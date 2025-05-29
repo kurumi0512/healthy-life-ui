@@ -12,6 +12,7 @@ import SugarLogPage from './pages/SugarLogPage';
 import AdvicePage from './pages/AdvicePage';
 import RegisterPage from './pages/RegisterPage';
 import VerifySuccess from './pages/VerifySuccess';
+import VerifyFail from './pages/VerifyFail';
 import AdminDashboard from './pages/AdminDashboard'; // ✅ 新增管理者後台頁面
 import AdminUsersPage from './pages/AdminUsersPage';
 
@@ -45,6 +46,7 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/verify-success" element={<VerifySuccess />} />
+        <Route path="/verify-fail" element={<VerifyFail />} />
 
         {/* 需登入的頁面 */}
         <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
