@@ -50,9 +50,7 @@ function SugarLogPage() {
       return;
     }
 
-    const warnings = [];
-    if (fastingValue < 60 || fastingValue > 99) warnings.push('⚠️ 餐前血糖異常（60~99）');
-    if (postMealValue < 60 || postMealValue > 139) warnings.push('⚠️ 餐後血糖異常（60~139）');
+    const warnings = getSugarStatusFromValues(fastingValue, postMealValue);
     setWarningMessages(warnings);
 
     const payload = {
@@ -71,7 +69,11 @@ function SugarLogPage() {
       }
 
       await fetchRecords();
-      clearForm();
+
+      // 顯示警告訊息 5 秒後再清除
+      setTimeout(() => {
+        clearForm();
+      }, 5000);
     } catch (err) {
       console.error('儲存失敗', err);
     }
@@ -92,6 +94,58 @@ function SugarLogPage() {
     setRecordDate(record.recordDate);
     setNotes(record.notes || '');
     setEditingId(record.id);
+  };
+
+  const getSugarStatusFromValues = (fasting, postMeal) => {
+    const results = [];
+
+    // 餐前（空腹）血糖
+    if (fasting >= 126) {
+      results.push({
+        message: '❗ 餐前血糖達糖尿病標準（≧126 mg/dL）',
+        color: 'text-red-600'
+      });
+    } else if (fasting >= 100) {
+      results.push({
+        message: '⚠️ 餐前血糖為糖尿病前期（100～125 mg/dL）',
+        color: 'text-yellow-500'
+      });
+    } else if (fasting >= 70) {
+      results.push({
+        message: '✅ 餐前血糖正常（70～99 mg/dL）',
+        color: 'text-green-600'
+      });
+    } else if (fasting > 0) {
+      results.push({
+        message: '⚠️ 餐前血糖過低，請注意是否有低血糖反應',
+        color: 'text-orange-500'
+      });
+    }
+
+    // 餐後血糖
+    if (postMeal >= 200) {
+      results.push({
+        message: '❗ 餐後血糖達糖尿病標準（≧200 mg/dL）',
+        color: 'text-red-600'
+      });
+    } else if (postMeal >= 140) {
+      results.push({
+        message: '⚠️ 餐後血糖為糖尿病前期（140～199 mg/dL）',
+        color: 'text-yellow-500'
+      });
+    } else if (postMeal >= 80) {
+      results.push({
+        message: '✅ 餐後血糖正常（80～139 mg/dL）',
+        color: 'text-green-600'
+      });
+    } else if (postMeal > 0) {
+      results.push({
+        message: '⚠️ 餐後血糖過低，請注意是否有低血糖反應',
+        color: 'text-orange-500'
+      });
+    }
+
+    return results;
   };
 
   const handleDelete = async (id) => {
@@ -169,7 +223,7 @@ function SugarLogPage() {
             onChange={(e) => setNotes(e.target.value)}
             rows={3}
             className="w-full px-4 py-2 mt-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
-            placeholder="例如：運動後測量、頭暈..."
+            placeholder="例如：今天有哪裡比較不舒服嗎?或是狀況一切ok。"
           />
         </div>
         <div className="md:col-span-2 text-center space-x-2">
@@ -192,9 +246,9 @@ function SugarLogPage() {
 
       {/* 警告訊息 */}
       {warningMessages.length > 0 && (
-        <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-6 rounded">
+        <div className="bg-yellow-50 border-l-4 border-yellow-400 text-sm p-4 mb-6 rounded space-y-1">
           {warningMessages.map((msg, i) => (
-            <p key={i}>{msg}</p>
+            <p key={i} className={msg.color}>{msg.message}</p>
           ))}
         </div>
       )}

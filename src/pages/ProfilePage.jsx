@@ -7,6 +7,7 @@ function ProfilePage() {
     age: '',
     gender: '',
     goal: '',
+    height: '', 
     targetWeight: '',
     ageGroup: '',
     email: ''
@@ -25,6 +26,7 @@ function ProfilePage() {
         age: data.age || '',
         gender: data.gender || '',
         goal: data.goal || '',
+        height: data.height ||'', 
         targetWeight: data.targetWeight || '',
         ageGroup: data.ageGroup || '',
         email: data.email || ''
@@ -105,6 +107,17 @@ function ProfilePage() {
               <option value="增肌">增肌</option>
               <option value="維持">維持</option>
             </select>
+          </div>
+          <div>
+            <label className="block mb-1">身高（cm）：</label>
+            <input
+              name="height"
+              type="number"
+              min="0"
+              value={form.height}
+              onChange={handleChange}
+              className="w-full border p-2 rounded"
+            />
           </div>
           <div>
             <label className="block mb-1">目標體重：</label>
