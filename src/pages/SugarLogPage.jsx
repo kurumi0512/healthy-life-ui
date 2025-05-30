@@ -45,8 +45,19 @@ function SugarLogPage() {
     const fastingValue = parseFloat(fasting);
     const postMealValue = parseFloat(postMeal);
 
-    if (fastingValue < 0 || postMealValue < 0) {
-      alert('❌ 血糖不可為負值');
+    // ✅ 驗證數值區間
+    if (
+      isNaN(fastingValue) || isNaN(postMealValue) ||
+      fastingValue < 30 || fastingValue > 250 ||
+      postMealValue < 30 || postMealValue > 250
+    ) {
+      alert('❌ 餐前/餐後血糖應介於 30～250 mg/dL 之間');
+      return;
+    }
+
+    // ✅ 備註長度限制
+    if (notes.length > 50) {
+      alert('❗備註最多 50 字');
       return;
     }
 
@@ -69,11 +80,7 @@ function SugarLogPage() {
       }
 
       await fetchRecords();
-
-      // 顯示警告訊息 5 秒後再清除
-      setTimeout(() => {
-        clearForm();
-      }, 5000);
+      setTimeout(() => clearForm(), 5000);
     } catch (err) {
       console.error('儲存失敗', err);
     }
@@ -159,19 +166,21 @@ function SugarLogPage() {
     }
   };
 
+  const latest10 = [...records].slice(-10);
+
   const chartData = {
-    labels: records.map((r) => r.recordDate),
+    labels: latest10.map((r) => r.recordDate),
     datasets: [
       {
         label: '餐前血糖',
-        data: records.map((r) => r.fasting),
+        data: latest10.map((r) => r.fasting),
         borderColor: '#4caf50',
         fill: false,
         tension: 0.1
       },
       {
         label: '餐後血糖',
-        data: records.map((r) => r.postMeal),
+        data: latest10.map((r) => r.postMeal),
         borderColor: '#f44336',
         fill: false,
         tension: 0.1
@@ -199,6 +208,8 @@ function SugarLogPage() {
           <label className="block text-gray-700 text-sm font-medium">餐前血糖 (mg/dL)</label>
           <input
             type="number"
+            min="30"
+            max="250"
             value={fasting}
             onChange={(e) => setFasting(e.target.value)}
             className="w-full px-4 py-2 mt-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
@@ -209,6 +220,8 @@ function SugarLogPage() {
           <label className="block text-gray-700 text-sm font-medium">餐後血糖 (mg/dL)</label>
           <input
             type="number"
+            min="30"
+            max="250"
             value={postMeal}
             onChange={(e) => setPostMeal(e.target.value)}
             className="w-full px-4 py-2 mt-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
@@ -268,7 +281,7 @@ function SugarLogPage() {
           <p className="text-gray-500 text-center">尚無紀錄，請新增資料 📝</p>
         ) : (
           <div className="space-y-4">
-            {(showAll ? records : records.slice(0, 5)).map((r, i) => (
+            {(showAll ? records.slice(0, 15) : records.slice(0, 5)).map((r, i) => (
               <div
                 key={i}
                 className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm flex justify-between items-center"
@@ -294,8 +307,11 @@ function SugarLogPage() {
             onClick={() => setShowAll(!showAll)}
             className="text-blue-600 hover:underline"
           >
-            {showAll ? '顯示較少' : '顯示更多'}
+            {showAll ? '顯示較少' : '顯示更多（最多 15 筆）'}
           </button>
+          {showAll && records.length > 15 && (
+            <p className="text-sm text-gray-400 mt-1">⚠️ 僅顯示最新 15 筆資料</p>
+          )}
         </div>
       )}
 

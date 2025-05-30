@@ -38,30 +38,43 @@ function BPRecordPage() {
   };
 
   const saveBpRecord = async () => {
-    if (systolic && diastolic) {
-      const record = {
-        systolic: parseInt(systolic),
-        diastolic: parseInt(diastolic),
-        recordDate: new Date().toISOString().split('T')[0],
-        notes: notes
-      };
+    const sys = parseInt(systolic);
+    const dia = parseInt(diastolic);
 
-      try {
-        if (editingId) {
-          await axios.put(`http://localhost:8082/rest/health/bp/${editingId}`, record, {
-            withCredentials: true
-          });
-        } else {
-          await axios.post('http://localhost:8082/rest/health/bp', record, {
-            withCredentials: true
-          });
-        }
+    // ✅ 數值驗證：50~250
+    if (isNaN(sys) || isNaN(dia) || sys < 50 || sys > 250 || dia < 50 || dia > 250) {
+      alert("❌ 血壓數值需在 50～250 mmHg 範圍內");
+      return;
+    }
 
-        await fetchRecords();
-        clearForm();
-      } catch (err) {
-        console.error('儲存血壓失敗', err);
+    // ✅ 備註長度限制
+    if (notes.length > 50) {
+      alert("❗ 備註最多 50 字");
+      return;
+    }
+
+    const record = {
+      systolic: sys,
+      diastolic: dia,
+      recordDate: new Date().toISOString().split('T')[0],
+      notes: notes
+    };
+
+    try {
+      if (editingId) {
+        await axios.put(`http://localhost:8082/rest/health/bp/${editingId}`, record, {
+          withCredentials: true
+        });
+      } else {
+        await axios.post('http://localhost:8082/rest/health/bp', record, {
+          withCredentials: true
+        });
       }
+
+      await fetchRecords();
+      clearForm();
+    } catch (err) {
+      console.error('儲存血壓失敗', err);
     }
   };
 
@@ -120,8 +133,9 @@ function BPRecordPage() {
 
   const status = getBPStatusFromValues(systolic, diastolic);
 
+  const latest10 = [...bpRecords].slice(-10);
   const chartData = {
-    labels: bpRecords.map((record) => record.recordDate),
+    labels: latest10.map((record) => record.recordDate),
     datasets: [
       {
         label: '收縮壓',
@@ -152,6 +166,8 @@ function BPRecordPage() {
           <label className="block text-gray-700 text-sm font-medium">收縮壓 (mmHg)</label>
           <input
             type="number"
+            min="50"
+            max="250"
             value={systolic}
             onChange={(e) => setSystolic(e.target.value)}
             className="w-full px-4 py-2 mt-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
@@ -162,6 +178,8 @@ function BPRecordPage() {
           <label className="block text-gray-700 text-sm font-medium">舒張壓 (mmHg)</label>
           <input
             type="number"
+            min="50"
+            max="250"
             value={diastolic}
             onChange={(e) => setDiastolic(e.target.value)}
             className="w-full px-4 py-2 mt-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
@@ -219,7 +237,7 @@ function BPRecordPage() {
           <p className="text-gray-500 text-center mt-4">尚無紀錄，請新增一筆血壓資料 🩺</p>
         ) : (
           <div className="space-y-4">
-            {(showAllBp ? bpRecords : bpRecords.slice(0, 5)).map((record, index) => {
+            {(showAllBp ? bpRecords.slice(0, 15) : bpRecords.slice(0, 5)).map((record, index) => {
               const status = getBPStatusFromValues(record.systolic, record.diastolic);
               return (
                 <div
@@ -257,8 +275,11 @@ function BPRecordPage() {
               onClick={() => setShowAllBp(!showAllBp)}
               className="text-blue-600 hover:underline"
             >
-              {showAllBp ? '顯示較少' : '顯示更多'}
+              {showAllBp ? '顯示較少' : '顯示更多（最多 15 筆）'}
             </button>
+            {showAllBp && bpRecords.length > 15 && (
+              <p className="text-sm text-gray-400 mt-1">⚠️ 只顯示最新 15 筆紀錄</p>
+            )}
           </div>
         )}
 

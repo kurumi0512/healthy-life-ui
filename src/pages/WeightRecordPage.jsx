@@ -40,42 +40,62 @@ const WeightRecordPage = () => {
     };
 
     const saveWeightRecord = async () => {
-        if (height && weight && age) {
-            const heightCm = parseFloat(height);
-            const weightKg = parseFloat(weight);
-            const bmiValue = weightKg / ((heightCm / 100) ** 2);
-            
-            try {
-                const data = {
-                    height: heightCm,
-                    weight: weightKg,
-                    age: parseInt(age),
-                    bmi: bmiValue,
-                    recordDate: new Date().toISOString().split("T")[0],
-                };
+        const heightCm = parseFloat(height);
+        const weightKg = parseFloat(weight);
+        const ageNum = parseInt(age);
 
-                if (editingId) {
-                    await axios.put(`http://localhost:8082/rest/health/weight/${editingId}`, data, {
-                        withCredentials: true,
-                    });
-                    setEditingId(null);
-                } else {
-                    await axios.post("http://localhost:8082/rest/health/weight", data, {
-                        withCredentials: true,
-                    });
-                }
+        // ✅ 先做數字格式驗證
+        if (isNaN(heightCm) || isNaN(weightKg) || isNaN(ageNum)) {
+            alert("❗身高、體重與年齡必須是數字");
+            return;
+        }
 
-                await fetchRecentRecords();
-                clearForm();
-                setSuccessMessage(`✅ 已自動計算 BMI：${bmiValue.toFixed(2)} 並儲存成功`);
+        // ✅ 合理範圍檢查
+        if (heightCm < 50 || heightCm > 250) {
+            alert("❗請輸入合理的身高（50 ~ 250 cm）");
+            return;
+        }
 
-                // 2 秒後自動清除訊息
-                setTimeout(() => setSuccessMessage(''), 2000);
-            } catch (err) {
-                console.error("儲存失敗", err);
+        if (weightKg < 10 || weightKg > 300) {
+            alert("❗請輸入合理的體重（10 ~ 300 kg）");
+            return;
+        }
+
+        if (ageNum < 1 || ageNum > 120) {
+            alert("❗請輸入合理的年齡（1 ~ 120 歲）");
+            return;
+        }
+
+        const bmiValue = weightKg / ((heightCm / 100) ** 2);
+
+        // 👇 以下為原本儲存邏輯
+        try {
+            const data = {
+                height: heightCm,
+                weight: weightKg,
+                age: ageNum,
+                bmi: bmiValue,
+                recordDate: new Date().toISOString().split("T")[0],
+            };
+
+            if (editingId) {
+                await axios.put(`http://localhost:8082/rest/health/weight/${editingId}`, data, {
+                    withCredentials: true,
+                });
+                setEditingId(null);
+            } else {
+                await axios.post("http://localhost:8082/rest/health/weight", data, {
+                    withCredentials: true,
+                });
             }
-        } else {
-            alert("❗請填寫身高、體重與年齡");
+
+            await fetchRecentRecords();
+            clearForm();
+            setSuccessMessage(`✅ 已自動計算 BMI：${bmiValue.toFixed(2)} 並儲存成功`);
+
+            setTimeout(() => setSuccessMessage(''), 2000);
+        } catch (err) {
+            console.error("儲存失敗", err);
         }
     };
 
@@ -110,8 +130,9 @@ const WeightRecordPage = () => {
         }
     };
 
+    const last10Records = weightRecords.slice(-10);
     const chartData = {
-        labels: weightRecords.map((record) => record.recordDate),
+        labels: last10Records.map((record) => record.recordDate),
         datasets: [
             {
                 label: "體重紀錄",
@@ -133,6 +154,8 @@ const WeightRecordPage = () => {
                     <input
                         type="number"
                         value={height}
+                        min="50"
+                        max="250"
                         onChange={(e) => setHeight(e.target.value)}
                         className="w-full px-4 py-2 mt-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
                         placeholder="輸入身高"
@@ -143,6 +166,8 @@ const WeightRecordPage = () => {
                     <input
                         type="number"
                         value={weight}
+                        min="10"
+                        max="150"
                         onChange={(e) => setWeight(e.target.value)}
                         className="w-full px-4 py-2 mt-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
                         placeholder="輸入體重"
@@ -153,6 +178,8 @@ const WeightRecordPage = () => {
                     <input
                         type="number"
                         value={age}
+                        min="10"
+                        max="150"
                         onChange={(e) => setAge(e.target.value)}
                         className="w-full px-4 py-2 mt-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
                         placeholder="輸入年齡"
@@ -205,7 +232,7 @@ const WeightRecordPage = () => {
                     <p className="text-gray-500 text-center mt-4">尚無紀錄，請新增一筆體重資料  📝</p>
                 ) : (
                     <div className="space-y-4 mt-4">
-                    {(showAll ? weightRecords : weightRecords.slice(0, 5)).map((record, index) => {
+                    {(showAll ? weightRecords.slice(0, 15) : weightRecords.slice(0, 5)).map((record, index) => {
                         const heightCm = parseFloat(record.height);
                         let bmi = null;
                         let status = "";
@@ -258,10 +285,13 @@ const WeightRecordPage = () => {
                     onClick={() => setShowAll(!showAll)}
                     className="text-blue-600 hover:underline"
                     >
-                    {showAll ? '顯示較少' : '顯示更多'}
+                    {showAll ? '顯示較少' : '顯示更多（最多 15 筆）'}
                     </button>
+                    {showAll && weightRecords.length > 15 && (
+                    <p className="text-sm text-gray-400 mt-1">⚠️ 僅顯示最新 15 筆資料</p>
+                    )}
                 </div>
-            )}
+                )}
             
 
             <div className="mt-8 text-center">
