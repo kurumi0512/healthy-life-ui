@@ -21,6 +21,7 @@ function BPRecordPage() {
   const [bpRecords, setBpRecords] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const [showAllBp, setShowAllBp] = useState(false);
+  const [recordDate, setRecordDate] = useState('');
 
   useEffect(() => {
     fetchRecords();
@@ -56,7 +57,7 @@ function BPRecordPage() {
     const record = {
       systolic: sys,
       diastolic: dia,
-      recordDate: new Date().toISOString().split('T')[0],
+      recordDate: recordDate || new Date().toISOString().split('T')[0],
       notes: notes
     };
 
@@ -83,12 +84,14 @@ function BPRecordPage() {
     setDiastolic('');
     setNotes('');
     setEditingId(null);
+    setRecordDate('');
   };
 
   const handleEdit = (record) => {
     setSystolic(record.systolic);
     setDiastolic(record.diastolic);
     setNotes(record.notes || '');
+    setRecordDate(record.recordDate);
     setEditingId(record.recordId);
   };
 
@@ -162,6 +165,15 @@ function BPRecordPage() {
 
       {/* 表單區塊 */}
       <div className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-gray-700 text-sm font-medium">記錄日期</label>
+          <input
+            type="date"
+            value={recordDate}
+            onChange={(e) => setRecordDate(e.target.value)}
+            className="w-full px-4 py-2 mt-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
+          />
+        </div>
         <div>
           <label className="block text-gray-700 text-sm font-medium">收縮壓 (mmHg)</label>
           <input

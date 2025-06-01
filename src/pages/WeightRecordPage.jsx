@@ -13,6 +13,7 @@ const WeightRecordPage = () => {
     const [editingId, setEditingId] = useState(null); // 編輯中的紀錄 ID
     const [successMessage, setSuccessMessage] = useState('');
     const [showAll, setShowAll] = useState(false); // ➕ 是否顯示全部
+    const [recordDate, setRecordDate] = useState('');
 
     useEffect(() => {
         fetchRecentRecords();
@@ -75,7 +76,7 @@ const WeightRecordPage = () => {
                 weight: weightKg,
                 age: ageNum,
                 bmi: bmiValue,
-                recordDate: new Date().toISOString().split("T")[0],
+                recordDate: recordDate || new Date().toISOString().split("T")[0] // 預設今天
             };
 
             if (editingId) {
@@ -105,6 +106,7 @@ const WeightRecordPage = () => {
         setAge("");
         setBmi(null);
         setBmiStatus("");
+        setRecordDate('');
         setEditingId(null);
     };
 
@@ -113,6 +115,7 @@ const WeightRecordPage = () => {
         setWeight(record.weight);
         setAge(record.age);
         setBmi(record.bmi);
+        setRecordDate(record.recordDate);
         setEditingId(record.recordId); // 修正
     };
 
@@ -149,6 +152,15 @@ const WeightRecordPage = () => {
             <h1 className="text-3xl font-semibold text-center text-gray-800 mb-6">體重紀錄</h1>
 
             <div className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label className="block text-gray-700 text-sm font-medium">記錄日期</label>
+                    <input
+                        type="date"
+                        value={recordDate}
+                        onChange={(e) => setRecordDate(e.target.value)}
+                        className="w-full px-4 py-2 mt-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    />
+                </div>
                 <div>
                     <label className="block text-gray-700 text-sm font-medium">身高 (cm)</label>
                     <input
