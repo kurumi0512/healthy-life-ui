@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Line } from 'react-chartjs-2';
+import { Client } from '@stomp/stompjs';
+import SockJS from 'sockjs-client';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -24,10 +29,31 @@ function SugarLogPage() {
   const [records, setRecords] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const [warningMessages, setWarningMessages] = useState([]);
-  const [showAll, setShowAll] = useState(false); // ➕ 是否顯示全部
+  const [showAll, setShowAll] = useState(false);
 
   useEffect(() => {
     fetchRecords();
+  }, []);
+
+  useEffect(() => {
+    const socket = new SockJS('http://localhost:8082/ws');
+    const client = new Client({
+      webSocketFactory: () => socket,
+      reconnectDelay: 5000,
+      onConnect: () => {
+        console.log("✅ STOMP 已連線");
+
+        client.subscribe('/user/queue/alerts', (message) => {
+          toast.warning('📢 系統通知：' + message.body);
+        });
+      }
+    });
+
+    client.activate();
+
+    return () => {
+      client.deactivate();
+    };
   }, []);
 
   const fetchRecords = async () => {
@@ -45,19 +71,17 @@ function SugarLogPage() {
     const fastingValue = parseFloat(fasting);
     const postMealValue = parseFloat(postMeal);
 
-    // ✅ 驗證數值區間
     if (
       isNaN(fastingValue) || isNaN(postMealValue) ||
       fastingValue < 30 || fastingValue > 250 ||
       postMealValue < 30 || postMealValue > 250
     ) {
-      alert('❌ 餐前/餐後血糖應介於 30～250 mg/dL 之間');
+      toast.error('❌ 餐前/餐後血糖應介於 30～250 mg/dL 之間');
       return;
     }
 
-    // ✅ 備註長度限制
     if (notes.length > 50) {
-      alert('❗備註最多 50 字');
+      toast.error('❗備註最多 50 字');
       return;
     }
 
@@ -106,50 +130,24 @@ function SugarLogPage() {
   const getSugarStatusFromValues = (fasting, postMeal) => {
     const results = [];
 
-    // 餐前（空腹）血糖
     if (fasting >= 126) {
-      results.push({
-        message: '❗ 餐前血糖達糖尿病標準（≧126 mg/dL）',
-        color: 'text-red-600'
-      });
+      results.push({ message: '❗ 餐前血糖達糖尿病標準（≧126 mg/dL）', color: 'text-red-600' });
     } else if (fasting >= 100) {
-      results.push({
-        message: '⚠️ 餐前血糖為糖尿病前期（100～125 mg/dL）',
-        color: 'text-yellow-500'
-      });
+      results.push({ message: '⚠️ 餐前血糖為糖尿病前期（100～125 mg/dL）', color: 'text-yellow-500' });
     } else if (fasting >= 70) {
-      results.push({
-        message: '✅ 餐前血糖正常（70～99 mg/dL）',
-        color: 'text-green-600'
-      });
+      results.push({ message: '✅ 餐前血糖正常（70～99 mg/dL）', color: 'text-green-600' });
     } else if (fasting > 0) {
-      results.push({
-        message: '⚠️ 餐前血糖過低，請注意是否有低血糖反應',
-        color: 'text-orange-500'
-      });
+      results.push({ message: '⚠️ 餐前血糖過低，請注意是否有低血糖反應', color: 'text-orange-500' });
     }
 
-    // 餐後血糖
     if (postMeal >= 200) {
-      results.push({
-        message: '❗ 餐後血糖達糖尿病標準（≧200 mg/dL）',
-        color: 'text-red-600'
-      });
+      results.push({ message: '❗ 餐後血糖達糖尿病標準（≧200 mg/dL）', color: 'text-red-600' });
     } else if (postMeal >= 140) {
-      results.push({
-        message: '⚠️ 餐後血糖為糖尿病前期（140～199 mg/dL）',
-        color: 'text-yellow-500'
-      });
+      results.push({ message: '⚠️ 餐後血糖為糖尿病前期（140～199 mg/dL）', color: 'text-yellow-500' });
     } else if (postMeal >= 80) {
-      results.push({
-        message: '✅ 餐後血糖正常（80～139 mg/dL）',
-        color: 'text-green-600'
-      });
+      results.push({ message: '✅ 餐後血糖正常（80～139 mg/dL）', color: 'text-green-600' });
     } else if (postMeal > 0) {
-      results.push({
-        message: '⚠️ 餐後血糖過低，請注意是否有低血糖反應',
-        color: 'text-orange-500'
-      });
+      results.push({ message: '⚠️ 餐後血糖過低，請注意是否有低血糖反應', color: 'text-orange-500' });
     }
 
     return results;
@@ -190,6 +188,7 @@ function SugarLogPage() {
 
   return (
     <div className="max-w-4xl mx-auto mt-5 p-8 pt-24 bg-white rounded-lg shadow-lg">
+      <ToastContainer />
       <h1 className="text-3xl font-semibold text-center text-gray-800 mb-6">血糖紀錄</h1>
 
       {/* 表單區塊 */}

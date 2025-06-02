@@ -23,7 +23,25 @@ export const AuthProvider = ({ children }) => {
     if (response.ok) {
       console.log("✅ 登入成功，後端回傳 user：", result.user);
       setUser(result.user);
-      return { success: true, user: result.user }; // ✅ 加這個！
+
+      // 🔁 補強：登入成功後再次確認登入者資訊
+      try {
+        const checkRes = await fetch('http://localhost:8082/rest/health/user', {
+          credentials: 'include'
+        });
+
+        if (checkRes.ok) {
+          const userData = await checkRes.json();
+          console.log("✅ 二次確認登入身分成功：", userData);
+          setUser(userData.user);
+        } else {
+          console.warn("⚠️ 登入後 /user 回傳失敗");
+        }
+      } catch (err) {
+        console.error("⚠️ 登入後確認 /user 時發生錯誤", err);
+      }
+
+      return { success: true, user: result.user };
     } else {
       return { success: false, message: result.message };
     }
