@@ -105,7 +105,7 @@ function SugarLogPage() {
     setPostMeal(record.postMeal);
     setRecordDate(record.recordDate);
     setNotes(record.notes || '');
-    setEditingId(record.id);
+    setEditingId(record.recordId);
   };
 
   const getSugarStatusFromValues = (fasting, postMeal) => {
@@ -290,7 +290,7 @@ function SugarLogPage() {
                 </div>
                 <div className="text-sm text-right space-x-2">
                   <button onClick={() => handleEdit(r)} className="text-blue-600 hover:underline">編輯</button>
-                  <button onClick={() => handleDelete(r.id)} className="text-red-600 hover:underline">刪除</button>
+                  <button onClick={() => handleDelete(r.recordId)} className="text-red-600 hover:underline">刪除</button>
                 </div>
               </div>
             ))}

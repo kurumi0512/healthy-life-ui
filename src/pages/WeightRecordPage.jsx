@@ -162,6 +162,7 @@ const WeightRecordPage = () => {
 
     return (
         <div className="max-w-4xl mx-auto mt-5 p-8 pt-24 bg-white rounded-lg shadow-lg">
+            <ToastContainer position="top-right" autoClose={3000} />
             <h1 className="text-3xl font-semibold text-center text-gray-800 mb-6">體重紀錄</h1>
 
             <div className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-4">
