@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Line } from 'react-chartjs-2';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { confirmAlert } from 'react-confirm-alert';
+import 'react-confirm-alert/src/react-confirm-alert.css';
+
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -44,13 +49,12 @@ function BPRecordPage() {
 
     // ✅ 數值驗證：50~250
     if (isNaN(sys) || isNaN(dia) || sys < 50 || sys > 250 || dia < 50 || dia > 250) {
-      alert("❌ 血壓數值需在 50～250 mmHg 範圍內");
+      toast.error("血壓數值需在 50～250 mmHg 範圍內");
       return;
     }
 
-    // ✅ 備註長度限制
     if (notes.length > 50) {
-      alert("❗ 備註最多 50 字");
+      toast.error("備註最多 50 字");
       return;
     }
 
@@ -74,6 +78,9 @@ function BPRecordPage() {
 
       await fetchRecords();
       clearForm();
+
+      // ✅ 成功提示
+      toast.success(editingId ? " 血壓紀錄更新成功" : " 血壓紀錄儲存成功");
     } catch (err) {
       console.error('儲存血壓失敗', err);
     }
@@ -95,17 +102,34 @@ function BPRecordPage() {
     setEditingId(record.recordId);
   };
 
-  const handleDelete = async (recordId) => {
-    if (window.confirm('確定要刪除這筆紀錄嗎？')) {
-      try {
-        await axios.delete(`http://localhost:8082/rest/health/bp/${recordId}`, {
-          withCredentials: true
-        });
-        await fetchRecords();
-      } catch (err) {
-        console.error('刪除失敗', err);
-      }
-    }
+  const handleDelete = (recordId) => {
+    confirmAlert({
+      title: '刪除確認',
+      message: '確定要刪除這筆紀錄嗎？',
+      buttons: [
+        {
+          label: '確定',
+          onClick: async () => {
+            try {
+              await axios.delete(`http://localhost:8082/rest/health/bp/${recordId}`, {
+                withCredentials: true
+              });
+              await fetchRecords();
+              toast.success('已成功刪除血壓紀錄');
+            } catch (err) {
+              console.error('刪除失敗', err);
+              toast.error(' 刪除失敗，請稍後再試');
+            }
+          }
+        },
+        {
+          label: '取消',
+          onClick: () => {
+            // 使用者按取消，不做任何事
+          }
+        }
+      ]
+    });
   };
 
   const getBPStatusFromValues = (sys, dia) => {
@@ -161,6 +185,7 @@ function BPRecordPage() {
 
   return (
     <div className="max-w-4xl mx-auto mt-5 p-8 pt-24 bg-white rounded-lg shadow-lg">
+      <ToastContainer position="top-right" />
       <h1 className="text-3xl font-semibold text-center text-gray-800 mb-6">血壓紀錄</h1>
 
       {/* 表單區塊 */}

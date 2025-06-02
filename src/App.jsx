@@ -1,6 +1,8 @@
 import React, { useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './auth/AuthContext';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 import Navbar from './components/Navbar';
 import LoginPage from './pages/LoginPage';
@@ -41,6 +43,19 @@ function App() {
   return (
     <>
       <Navbar />
+
+      {/* ✅ ToastContainer 應該放在 Routes 外層 */}
+      <ToastContainer
+        position="top-right"
+        autoClose={3500}          // 2 秒自動關閉
+        hideProgressBar={false}   // 顯示進度條
+        newestOnTop={false}
+        closeOnClick
+        pauseOnHover
+        draggable
+        theme="light"             // light / dark / colored
+      />
+
       <Routes>
         <Route path="/" element={<FrontPage />} />
         <Route path="/login" element={<LoginPage />} />

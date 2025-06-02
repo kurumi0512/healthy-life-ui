@@ -2,6 +2,10 @@ import React, { useState, useEffect } from "react";
 import { Line } from "react-chartjs-2";
 import axios from "axios";
 import "chart.js/auto";
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { confirmAlert } from 'react-confirm-alert';
+import 'react-confirm-alert/src/react-confirm-alert.css';
 
 const WeightRecordPage = () => {
     const [height, setHeight] = useState("");
@@ -11,7 +15,6 @@ const WeightRecordPage = () => {
     const [bmiStatus, setBmiStatus] = useState("");
     const [weightRecords, setWeightRecords] = useState([]);
     const [editingId, setEditingId] = useState(null); // 編輯中的紀錄 ID
-    const [successMessage, setSuccessMessage] = useState('');
     const [showAll, setShowAll] = useState(false); // ➕ 是否顯示全部
     const [recordDate, setRecordDate] = useState('');
 
@@ -45,25 +48,21 @@ const WeightRecordPage = () => {
         const weightKg = parseFloat(weight);
         const ageNum = parseInt(age);
 
-        // ✅ 先做數字格式驗證
-        if (isNaN(heightCm) || isNaN(weightKg) || isNaN(ageNum)) {
-            alert("❗身高、體重與年齡必須是數字");
-            return;
-        }
-
         // ✅ 合理範圍檢查
+        if (isNaN(heightCm) || isNaN(weightKg) || isNaN(ageNum)) {
+            toast.error("身高、體重與年齡必須是數字");
+            return;
+        }
         if (heightCm < 50 || heightCm > 250) {
-            alert("❗請輸入合理的身高（50 ~ 250 cm）");
+            toast.error("輸入合理的身高（50 ~ 250 cm）");
             return;
         }
-
         if (weightKg < 10 || weightKg > 300) {
-            alert("❗請輸入合理的體重（10 ~ 300 kg）");
+            toast.error("請輸入合理的體重（10 ~ 300 kg）");
             return;
         }
-
         if (ageNum < 1 || ageNum > 120) {
-            alert("❗請輸入合理的年齡（1 ~ 120 歲）");
+            toast.error("請輸入合理的年齡（1 ~ 120 歲）");
             return;
         }
 
@@ -92,9 +91,7 @@ const WeightRecordPage = () => {
 
             await fetchRecentRecords();
             clearForm();
-            setSuccessMessage(`✅ 已自動計算 BMI：${bmiValue.toFixed(2)} 並儲存成功`);
-
-            setTimeout(() => setSuccessMessage(''), 2000);
+            toast.success(`✅ 已自動計算 BMI：${bmiValue.toFixed(2)} 並儲存成功`);
         } catch (err) {
             console.error("儲存失敗", err);
         }
@@ -119,18 +116,34 @@ const WeightRecordPage = () => {
         setEditingId(record.recordId); // 修正
     };
 
-    const handleDelete = async (id) => {
-        console.log("要刪除的紀錄 id =", id);
-        if (window.confirm("確定要刪除這筆紀錄嗎？")) {
-            try {
-                await axios.delete(`http://localhost:8082/rest/health/weight/${id}`, {
-                    withCredentials: true,
-                });
-                await fetchRecentRecords();
-            } catch (err) {
-                console.error("刪除失敗", err);
-            }
-        }
+    const handleDelete = (id) => {
+        confirmAlert({
+            title: '刪除確認',
+            message: '確定要刪除這筆紀錄嗎？',
+            buttons: [
+                {
+                    label: '確定',
+                    onClick: async () => {
+                        try {
+                            await axios.delete(`http://localhost:8082/rest/health/weight/${id}`, {
+                                withCredentials: true,
+                            });
+                            await fetchRecentRecords();
+                            toast.success("已成功刪除紀錄");
+                        } catch (err) {
+                            console.error("刪除失敗", err);
+                            toast.error("刪除失敗，請稍後再試");
+                        }
+                    }
+                },
+                {
+                    label: '取消',
+                    onClick: () => {
+                        // 不做事
+                    }
+                }
+            ]
+        });
     };
 
     const last10Records = weightRecords.slice(-10);
@@ -207,11 +220,7 @@ const WeightRecordPage = () => {
                     </p>
                 </div>
             )}
-            {successMessage && (
-                <div className="bg-green-100 text-green-800 px-4 py-2 mb-4 rounded border border-green-300 text-sm">
-                    {successMessage}
-                </div>
-            )}
+            
             <div className="mb-4 text-center">
                 <button
                     onClick={saveWeightRecord}

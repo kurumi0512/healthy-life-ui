@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
+import { toast } from 'react-toastify';
 
 function RegisterPage() {
   const [form, setForm] = useState({
@@ -50,27 +51,27 @@ function RegisterPage() {
 
   // ✅ 正確包在 async function 中
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    const foundErrors = validate();
-    if (Object.keys(foundErrors).length > 0) {
-      setErrors(foundErrors);
-      return;
-    }
+  e.preventDefault();
+  const foundErrors = validate();
+  if (Object.keys(foundErrors).length > 0) {
+    setErrors(foundErrors);
+    return;
+  }
 
-    const result = await register({
-      username: form.username,
-      password: form.password,
-      confirmPassword: form.confirmPassword,
-      email: form.email,
-    });
+  const result = await register({
+    username: form.username,
+    password: form.password,
+    confirmPassword: form.confirmPassword,
+    email: form.email,
+  });
 
-    if (result.success) {
-      alert(result.message);
-      navigate('/login');
-    } else {
-      alert(result.message); // 後端錯誤訊息，如帳號重複、格式錯誤等
-    }
-  };
+  if (result.success) {
+    toast.success(result.message); // ✅ 使用 toast 成功提示
+    navigate('/login');
+  } else {
+    toast.error(result.message); // ❌ 使用 toast 錯誤提示
+  }
+};
 
   return (
     <div className="p-6 pt-24 max-w-md mx-auto shadow-lg rounded bg-white">

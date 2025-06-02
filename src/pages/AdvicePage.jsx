@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { EventSourcePolyfill } from 'event-source-polyfill';
+import { toast } from 'react-toastify';
 
 
 function AdvicePage() {
@@ -15,7 +16,7 @@ function AdvicePage() {
   e.preventDefault();
 
   if (!height || !weight || !age || !goal) {
-    alert("請填寫完整的身高、體重、年齡與健康目標！");
+    toast.error("請填寫完整的身高、體重、年齡與健康目標");
     return;
   }
 

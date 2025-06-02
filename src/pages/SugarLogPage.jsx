@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Line } from 'react-chartjs-2';
-import { Client } from '@stomp/stompjs';
-import SockJS from 'sockjs-client';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { confirmAlert } from 'react-confirm-alert';
+import 'react-confirm-alert/src/react-confirm-alert.css';
+
 
 import {
   Chart as ChartJS,
@@ -35,27 +36,6 @@ function SugarLogPage() {
     fetchRecords();
   }, []);
 
-  useEffect(() => {
-    const socket = new SockJS('http://localhost:8082/ws');
-    const client = new Client({
-      webSocketFactory: () => socket,
-      reconnectDelay: 5000,
-      onConnect: () => {
-        console.log("✅ STOMP 已連線");
-
-        client.subscribe('/user/queue/alerts', (message) => {
-          toast.warning('📢 系統通知：' + message.body);
-        });
-      }
-    });
-
-    client.activate();
-
-    return () => {
-      client.deactivate();
-    };
-  }, []);
-
   const fetchRecords = async () => {
     try {
       const res = await axios.get(`${API_BASE}`, {
@@ -76,12 +56,12 @@ function SugarLogPage() {
       fastingValue < 30 || fastingValue > 250 ||
       postMealValue < 30 || postMealValue > 250
     ) {
-      toast.error('❌ 餐前/餐後血糖應介於 30～250 mg/dL 之間');
+      toast.error('餐前/餐後血糖應介於 30～250 mg/dL 之間');
       return;
     }
 
     if (notes.length > 50) {
-      toast.error('❗備註最多 50 字');
+      toast.error('備註最多 50 字');
       return;
     }
 
@@ -105,6 +85,7 @@ function SugarLogPage() {
 
       await fetchRecords();
       setTimeout(() => clearForm(), 5000);
+       toast.success(editingId ? "血糖紀錄更新成功" : "血糖紀錄儲存成功");
     } catch (err) {
       console.error('儲存失敗', err);
     }
@@ -153,15 +134,32 @@ function SugarLogPage() {
     return results;
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm('確定要刪除這筆紀錄嗎？')) {
-      try {
-        await axios.delete(`${API_BASE}/${id}`, { withCredentials: true });
-        await fetchRecords();
-      } catch (err) {
-        console.error('刪除失敗', err);
-      }
-    }
+  const handleDelete = (id) => {
+    confirmAlert({
+      title: '刪除確認',
+      message: '確定要刪除這筆紀錄嗎？',
+      buttons: [
+        {
+          label: '確定',
+          onClick: async () => {
+            try {
+              await axios.delete(`${API_BASE}/${id}`, { withCredentials: true });
+              await fetchRecords();
+              toast.success('已成功刪除紀錄');
+            } catch (err) {
+              console.error('刪除失敗', err);
+              toast.error('刪除失敗，請稍後再試');
+            }
+          }
+        },
+        {
+          label: '取消',
+          onClick: () => {
+            // 使用者取消，不做任何事
+          }
+        }
+      ]
+    });
   };
 
   const latest10 = [...records].slice(-10);

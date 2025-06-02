@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 function ProfilePage() {
   const [form, setForm] = useState({
@@ -64,8 +65,10 @@ function ProfilePage() {
       body: JSON.stringify(form)
     })
       .then(() => {
-        alert('更新成功！');
-        navigate('/Weight'); // ✅ 儲存後導向體重紀錄
+        toast.success('更新成功！');
+        setTimeout(() => {
+          navigate('/weight');
+        }, 5000); // 延遲 1.5 秒跳轉
       });
   };
 
