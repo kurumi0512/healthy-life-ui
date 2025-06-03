@@ -36,6 +36,11 @@ function SugarLogPage() {
     fetchRecords();
   }, []);
 
+  useEffect(() => {
+    const today = new Date().toISOString().split('T')[0]; // 取得 yyyy-mm-dd 格式
+    setRecordDate(today);
+  }, []);
+
   const fetchRecords = async () => {
     try {
       const res = await axios.get(`${API_BASE}`, {
@@ -106,6 +111,7 @@ function SugarLogPage() {
     setRecordDate(record.recordDate);
     setNotes(record.notes || '');
     setEditingId(record.recordId);
+    setRecordDate(new Date().toISOString().split('T')[0]);
   };
 
   const getSugarStatusFromValues = (fasting, postMeal) => {

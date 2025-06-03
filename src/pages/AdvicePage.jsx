@@ -13,7 +13,7 @@ function AdvicePage() {
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = (e) => {
-  e.preventDefault();
+  e.preventDefault(); // 防止表單刷新
 
   if (!height || !weight || !age || !goal) {
     toast.error("請填寫完整的身高、體重、年齡與健康目標");
@@ -26,7 +26,7 @@ function AdvicePage() {
   const url = `http://localhost:8082/rest/health/healthAI/advice-stream?height=${height}&weight=${weight}&age=${age}&goal=${goal}`;
   console.log("送出的請求 URL：", url);
 
-  // ✅ 使用 EventSourcePolyfill 並開啟 cookie 傳遞
+  // 使用 EventSourcePolyfill 串接 SSE API（並允許傳送 cookie）
   const eventSource = new EventSourcePolyfill(url, {
     withCredentials: true
   });
@@ -39,7 +39,7 @@ function AdvicePage() {
     if (!data || data === "undefined") return;
 
     if (data === "[DONE]") {
-      eventSource.close();
+      eventSource.close(); //關閉連線
       setLoading(false);
       return;
     }

@@ -22,6 +22,11 @@ const WeightRecordPage = () => {
         fetchRecentRecords();
     }, []);
 
+    useEffect(() => {
+        const today = new Date().toISOString().split('T')[0];
+        setRecordDate(today); // 只設定日期，不要呼叫 fetchRecords()
+    }, []);
+
     const fetchRecentRecords = async () => {
         try {
             const res = await axios.get("http://localhost:8082/rest/health/weight", {
@@ -105,6 +110,7 @@ const WeightRecordPage = () => {
         setBmiStatus("");
         setRecordDate('');
         setEditingId(null);
+        setRecordDate(new Date().toISOString().split('T')[0]);
     };
 
     const handleEdit = (record) => {

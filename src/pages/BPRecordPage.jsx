@@ -29,6 +29,8 @@ function BPRecordPage() {
   const [recordDate, setRecordDate] = useState('');
 
   useEffect(() => {
+    const today = new Date().toISOString().split('T')[0];
+    setRecordDate(today); // 設定預設日期
     fetchRecords();
   }, []);
 
@@ -91,7 +93,7 @@ function BPRecordPage() {
     setDiastolic('');
     setNotes('');
     setEditingId(null);
-    setRecordDate('');
+    setRecordDate(new Date().toISOString().split('T')[0]); // ← 清除後也顯示今天
   };
 
   const handleEdit = (record) => {
