@@ -8,36 +8,84 @@ import { confirmAlert } from 'react-confirm-alert';
 import 'react-confirm-alert/src/react-confirm-alert.css';
 
 const WeightRecordPage = () => {
-    const [height, setHeight] = useState("");
-    const [weight, setWeight] = useState("");
-    const [age, setAge] = useState("");
-    const [bmi, setBmi] = useState(null);
-    const [bmiStatus, setBmiStatus] = useState("");
-    const [weightRecords, setWeightRecords] = useState([]);
-    const [editingId, setEditingId] = useState(null); // 編輯中的紀錄 ID
-    const [showAll, setShowAll] = useState(false); // ➕ 是否顯示全部
-    const [recordDate, setRecordDate] = useState('');
+  const [height, setHeight] = useState("");
+  const [weight, setWeight] = useState("");
+  const [age, setAge] = useState("");
+  const [targetWeight, setTargetWeight] = useState("");
+  const [weightDifference, setWeightDifference] = useState(null);
+  const [bmi, setBmi] = useState(null);
+  const [weightRecords, setWeightRecords] = useState([]);
+  const [editingId, setEditingId] = useState(null);
+  const [showAll, setShowAll] = useState(false);
+  const [recordDate, setRecordDate] = useState('');
+  const [profileLoaded, setProfileLoaded] = useState(false);
+  const [loadingProfile, setLoadingProfile] = useState(false);
 
-    useEffect(() => {
-        fetchRecentRecords();
-    }, []);
+  useEffect(() => {
+    fetchRecentRecords();
+    setRecordDate(new Date().toISOString().split('T')[0]);
+    if (!profileLoaded) {
+      loadProfileData(true); // 初始化只填空欄位
+    }
+  }, []);
 
-    useEffect(() => {
-        const today = new Date().toISOString().split('T')[0];
-        setRecordDate(today); // 只設定日期，不要呼叫 fetchRecords()
-    }, []);
+  useEffect(() => {
+    if (weight && targetWeight && !isNaN(parseFloat(weight)) && !isNaN(parseFloat(targetWeight))) {
+      const diff = parseFloat(weight) - parseFloat(targetWeight);
+      setWeightDifference(diff.toFixed(1));
+    } else {
+      setWeightDifference(null);
+    }
+  }, [weight, targetWeight]);
 
-    const fetchRecentRecords = async () => {
-        try {
-            const res = await axios.get("http://localhost:8082/rest/health/weight", {
-            withCredentials: true,
-            });
-            setWeightRecords(res.data.data);
-        } catch (err) {
-            console.error("查詢失敗", err);
+  const fetchRecentRecords = async () => {
+    try {
+      const res = await axios.get("http://localhost:8082/rest/health/weight", { withCredentials: true });
+      setWeightRecords(res.data.data);
+    } catch (err) {
+      console.error("查詢失敗", err);
+    }
+  };
+
+  const loadProfileData = async (isInitialLoad = false) => {
+    if (loadingProfile) return;
+    try {
+        setLoadingProfile(true);
+
+        // 撈個人資料
+        const res = await axios.get("http://localhost:8082/rest/profile", { withCredentials: true });
+        const data = res.data;
+
+        // 撈最新體重紀錄
+        const weightRes = await axios.get("http://localhost:8082/rest/health/weight/latest", { withCredentials: true });
+        const latestWeight = weightRes.data?.data?.weight;
+
+        // 計算年齡
+        if (data.birthDate) {
+        const birthDate = new Date(data.birthDate);
+        const today = new Date();
+        let ageCalc = today.getFullYear() - birthDate.getFullYear();
+        const m = today.getMonth() - birthDate.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) ageCalc--;
+        if (!age || !isInitialLoad) setAge(ageCalc.toString());
         }
-    };
 
+        // 帶入身高、目標體重
+        if (data.height && (!height || !isInitialLoad)) setHeight(data.height.toString());
+        if (data.targetWeight && (!targetWeight || !isInitialLoad)) setTargetWeight(data.targetWeight.toString());
+
+        // ✅ 自動填入最新體重
+        if (latestWeight && (!weight || !isInitialLoad)) setWeight(latestWeight.toString());
+
+        if (!isInitialLoad) toast.success("個人資料已重新載入！");
+        setProfileLoaded(true);
+    } catch (err) {
+        console.error("載入個人資料失敗", err);
+        toast.error("個人資料載入失敗");
+    } finally {
+        setLoadingProfile(false);
+    }
+    };
     const calculateBmi = () => {
         if (height && weight) {
             const bmiValue = weight / (height / 100) ** 2;
@@ -53,11 +101,11 @@ const WeightRecordPage = () => {
         const weightKg = parseFloat(weight);
         const ageNum = parseInt(age);
 
-        // ✅ 合理範圍檢查
         if (isNaN(heightCm) || isNaN(weightKg) || isNaN(ageNum)) {
             toast.error("身高、體重與年齡必須是數字");
             return;
         }
+
         if (heightCm < 50 || heightCm > 250) {
             toast.error("輸入合理的身高（50 ~ 250 cm）");
             return;
@@ -73,14 +121,13 @@ const WeightRecordPage = () => {
 
         const bmiValue = weightKg / ((heightCm / 100) ** 2);
 
-        // 👇 以下為原本儲存邏輯
         try {
             const data = {
                 height: heightCm,
                 weight: weightKg,
                 age: ageNum,
                 bmi: bmiValue,
-                recordDate: recordDate || new Date().toISOString().split("T")[0] // 預設今天
+                recordDate: recordDate || new Date().toISOString().split("T")[0]
             };
 
             if (editingId) {
@@ -108,9 +155,8 @@ const WeightRecordPage = () => {
         setAge("");
         setBmi(null);
         setBmiStatus("");
-        setRecordDate('');
-        setEditingId(null);
         setRecordDate(new Date().toISOString().split('T')[0]);
+        setEditingId(null);
     };
 
     const handleEdit = (record) => {
@@ -119,7 +165,7 @@ const WeightRecordPage = () => {
         setAge(record.age);
         setBmi(record.bmi);
         setRecordDate(record.recordDate);
-        setEditingId(record.recordId); // 修正
+        setEditingId(record.recordId);
     };
 
     const handleDelete = (id) => {
@@ -142,34 +188,37 @@ const WeightRecordPage = () => {
                         }
                     }
                 },
-                {
-                    label: '取消',
-                    onClick: () => {
-                        // 不做事
-                    }
-                }
+                { label: '取消' }
             ]
         });
     };
 
     const last10Records = weightRecords.slice(-10);
     const chartData = {
-        labels: last10Records.map((record) => record.recordDate),
-        datasets: [
-            {
-                label: "體重紀錄",
-                data: weightRecords.map((record) => record.weight),
-                fill: false,
-                borderColor: "#4caf50",
-                tension: 0.1,
-            },
-        ],
+        labels: last10Records.map((r) => r.recordDate),
+        datasets: [{
+            label: "體重紀錄",
+            data: last10Records.map((r) => r.weight),
+            fill: false,
+            borderColor: "#4caf50",
+            tension: 0.1,
+        }],
     };
 
     return (
         <div className="max-w-4xl mx-auto mt-5 p-8 pt-24 bg-white rounded-lg shadow-lg">
             <ToastContainer position="top-right" autoClose={3000} />
             <h1 className="text-3xl font-semibold text-center text-gray-800 mb-6">體重紀錄</h1>
+
+            <div className="text-right mb-4">
+                <button
+                type="button"
+                onClick={() => loadProfileData(false)}
+                className="bg-blue-200 hover:bg-blue-300 text-blue-900 font-semibold py-2 px-4 rounded shadow-sm transition"
+                >
+                ☁️ 一鍵填入個人資料
+                </button>
+            </div>
 
             <div className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
@@ -178,7 +227,7 @@ const WeightRecordPage = () => {
                         type="date"
                         value={recordDate}
                         onChange={(e) => setRecordDate(e.target.value)}
-                        className="w-full px-4 py-2 mt-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                        className="w-full px-4 py-2 mt-2 rounded-lg border border-gray-300"
                     />
                 </div>
                 <div>
@@ -186,11 +235,8 @@ const WeightRecordPage = () => {
                     <input
                         type="number"
                         value={height}
-                        min="50"
-                        max="250"
                         onChange={(e) => setHeight(e.target.value)}
-                        className="w-full px-4 py-2 mt-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                        placeholder="輸入身高"
+                        className="w-full px-4 py-2 mt-2 rounded-lg border border-gray-300"
                     />
                 </div>
                 <div>
@@ -198,11 +244,8 @@ const WeightRecordPage = () => {
                     <input
                         type="number"
                         value={weight}
-                        min="10"
-                        max="150"
                         onChange={(e) => setWeight(e.target.value)}
-                        className="w-full px-4 py-2 mt-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                        placeholder="輸入體重"
+                        className="w-full px-4 py-2 mt-2 rounded-lg border border-gray-300"
                     />
                 </div>
                 <div>
@@ -210,41 +253,49 @@ const WeightRecordPage = () => {
                     <input
                         type="number"
                         value={age}
-                        min="10"
-                        max="150"
                         onChange={(e) => setAge(e.target.value)}
-                        className="w-full px-4 py-2 mt-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                        placeholder="輸入年齡"
+                        className="w-full px-4 py-2 mt-2 rounded-lg border border-gray-300"
                     />
                 </div>
             </div>
 
-            {bmi && (
+            {/* ✅ BMI 與目標體重提示 */}
+             {(bmi || (targetWeight && weight)) && (
                 <div className="bg-gray-50 p-6 rounded-lg shadow-md mb-6">
+                    {bmi && (
                     <p className="text-xl font-semibold text-gray-800">BMI: {bmi.toFixed(2)}</p>
-                    {/* <p className="text-lg text-gray-600">
-                        健康狀況: <span className="font-semibold text-green-500">{bmiStatus}</span>
-                    </p> */}
+                    )}
+                    {targetWeight && weight && !isNaN(parseFloat(weight)) && !isNaN(parseFloat(targetWeight)) && (
+                    <p className="text-base text-gray-600 mt-2">
+                        🎯 距離目標體重還有：
+                        <span className="font-semibold text-blue-600">
+                        {Math.abs(parseFloat(weight) - parseFloat(targetWeight)).toFixed(1)} kg
+                        </span>
+                        {parseFloat(weight) > parseFloat(targetWeight)
+                        ? "（差一點點了，加油！！）"
+                        : "（一定沒問題的！）"}
+                    </p>
+                    )}
                 </div>
-            )}
-            
+                )} {/* ← 注意這個括號不能少 */}
+
             <div className="mb-4 text-center">
                 <button
                     onClick={saveWeightRecord}
-                    className="px-4 py-2 bg-green-200 text-green-800 rounded-lg hover:bg-green-300 transition duration-300"
+                    className="px-4 py-2 bg-green-200 text-green-800 rounded-lg hover:bg-green-300 transition"
                 >
                     {editingId ? "更新體重紀錄" : "儲存體重紀錄"}
                 </button>
                 {editingId && (
                     <button
                         onClick={clearForm}
-                        className="ml-4 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition duration-300"
+                        className="ml-4 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition"
                     >
                         取消編輯
                     </button>
                 )}
             </div>
-            
+
             {weightRecords.length > 0 && (
                 <div className="bg-gray-50 p-6 rounded-lg shadow-md">
                     <h3 className="text-xl font-semibold text-gray-800">體重曲線圖</h3>
