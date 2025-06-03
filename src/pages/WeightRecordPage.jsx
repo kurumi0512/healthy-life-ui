@@ -216,9 +216,9 @@ const WeightRecordPage = () => {
             {bmi && (
                 <div className="bg-gray-50 p-6 rounded-lg shadow-md mb-6">
                     <p className="text-xl font-semibold text-gray-800">BMI: {bmi.toFixed(2)}</p>
-                    <p className="text-lg text-gray-600">
+                    {/* <p className="text-lg text-gray-600">
                         健康狀況: <span className="font-semibold text-green-500">{bmiStatus}</span>
-                    </p>
+                    </p> */}
                 </div>
             )}
             
