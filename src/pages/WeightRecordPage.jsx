@@ -6,6 +6,7 @@ import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { confirmAlert } from 'react-confirm-alert';
 import 'react-confirm-alert/src/react-confirm-alert.css';
+import confetti from "canvas-confetti";
 
 const WeightRecordPage = () => {
   const [height, setHeight] = useState("");
@@ -20,6 +21,7 @@ const WeightRecordPage = () => {
   const [recordDate, setRecordDate] = useState('');
   const [profileLoaded, setProfileLoaded] = useState(false);
   const [loadingProfile, setLoadingProfile] = useState(false);
+  const [bmiStatus, setBmiStatus] = useState("");
   
 
   useEffect(() => {
@@ -124,32 +126,44 @@ const WeightRecordPage = () => {
 
         try {
             const data = {
-                height: heightCm,
-                weight: weightKg,
-                age: ageNum,
-                bmi: bmiValue,
-                recordDate: recordDate || new Date().toISOString().split("T")[0]
+            height: heightCm,
+            weight: weightKg,
+            age: ageNum,
+            bmi: bmiValue,
+            recordDate: recordDate || new Date().toISOString().split("T")[0]
             };
-            console.log("🚀 傳給後端的 payload：", data);
+
+            const latestRecord = weightRecords[weightRecords.length - 1]; // 🔍 抓上一筆紀錄
 
             if (editingId) {
-                await axios.put(`http://localhost:8082/rest/health/weight/${editingId}`, data, {
-                    withCredentials: true,
-                });
-                setEditingId(null);
+            await axios.put(`http://localhost:8082/rest/health/weight/${editingId}`, data, {
+                withCredentials: true,
+            });
+            setEditingId(null);
             } else {
-                await axios.post("http://localhost:8082/rest/health/weight", data, {
-                    withCredentials: true,
+            await axios.post("http://localhost:8082/rest/health/weight", data, {
+                withCredentials: true,
+            });
+
+            // ✅ 新增模式才顯示鼓勵
+            if (latestRecord && weightKg < latestRecord.weight) {
+                toast.success("🎉 你進步了！太棒了！");
+                confetti({
+                particleCount: 120,
+                spread: 80,
+                origin: { y: 0.6 },
                 });
+            }
             }
 
             await fetchRecentRecords();
             clearForm();
-            toast.success(`✅ 已自動計算 BMI：${bmiValue.toFixed(2)} 並儲存成功`);
+            toast.success(`✅ BMI：${bmiValue.toFixed(2)}，紀錄成功`);
         } catch (err) {
             console.error("儲存失敗", err);
+            toast.error("紀錄失敗，請稍後再試");
         }
-    };
+        };
 
     const clearForm = () => {
         setHeight("");
