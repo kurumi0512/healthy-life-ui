@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { Line } from 'react-chartjs-2';
 import { toast, ToastContainer } from 'react-toastify';
@@ -27,6 +27,8 @@ function BPRecordPage() {
   const [editingId, setEditingId] = useState(null);
   const [showAllBp, setShowAllBp] = useState(false);
   const [recordDate, setRecordDate] = useState('');
+  const [showCongrats, setShowCongrats] = useState(false);
+  const formRef = useRef(null);
 
   useEffect(() => {
     const today = new Date().toISOString().split('T')[0];
@@ -83,6 +85,9 @@ function BPRecordPage() {
 
       // ✅ 成功提示
       toast.success(editingId ? " 血壓紀錄更新成功" : " 血壓紀錄儲存成功");
+      // 顯示鼓勵圖 2 秒
+      setShowCongrats(true);
+      setTimeout(() => setShowCongrats(false), 4000);
     } catch (err) {
       console.error('儲存血壓失敗', err);
     }
@@ -102,6 +107,11 @@ function BPRecordPage() {
     setNotes(record.notes || '');
     setRecordDate(record.recordDate);
     setEditingId(record.recordId);
+    // 👇 編輯時自動滑到上方表單
+    if (formRef.current) {
+      const topOffset = formRef.current.getBoundingClientRect().top + window.pageYOffset - 150;
+      window.scrollTo({ top: topOffset, behavior: "smooth" });
+    }
   };
 
   const handleDelete = (recordId) => {
@@ -191,7 +201,7 @@ function BPRecordPage() {
       <h1 className="text-3xl font-semibold text-center text-gray-800 mb-6">血壓紀錄</h1>
 
       {/* 表單區塊 */}
-      <div className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div ref={formRef} className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="block text-gray-700 text-sm font-medium">記錄日期</label>
           <input
@@ -321,6 +331,18 @@ function BPRecordPage() {
             )}
           </div>
         )}
+
+        {showCongrats && (
+          <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
+            <div className="flex flex-col items-center bg-white rounded-xl p-4 shadow-xl animate-fade-in-up">
+              <img src="/inu.png" alt="恭喜完成紀錄" className="w-32 h-32 object-contain" />
+              <p className="text-green-600 font-bold text-base mt-2 text-center leading-snug break-words max-w-[160px]">
+                做得好！繼續保持 💪
+              </p>
+            </div>
+          </div>
+        )}
+
 
         {/* 插圖 */}
         <div className="mt-8 text-center">

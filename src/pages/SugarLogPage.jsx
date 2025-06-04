@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { Line } from 'react-chartjs-2';
 import { toast, ToastContainer } from 'react-toastify';
@@ -31,6 +31,8 @@ function SugarLogPage() {
   const [editingId, setEditingId] = useState(null);
   const [warningMessages, setWarningMessages] = useState([]);
   const [showAll, setShowAll] = useState(false);
+  const [showCongrats, setShowCongrats] = useState(false);
+  const formRef = useRef(null);
 
   useEffect(() => {
     fetchRecords();
@@ -91,8 +93,10 @@ function SugarLogPage() {
       }
 
       await fetchRecords();
+      setShowCongrats(true);        // 顯示鼓勵動畫
+      setTimeout(() => setShowCongrats(false), 4000); // 2秒後自動消失
       setTimeout(() => clearForm(), 5000);
-       toast.success(editingId ? "血糖紀錄更新成功" : "血糖紀錄儲存成功");
+      toast.success(editingId ? "血糖紀錄更新成功" : "血糖紀錄儲存成功");
     } catch (err) {
       console.error('儲存失敗', err);
     }
@@ -113,6 +117,11 @@ function SugarLogPage() {
     setRecordDate(record.recordDate);
     setNotes(record.notes || '');
     setEditingId(record.recordId);
+    // 👇 編輯時自動滑到上方表單
+    if (formRef.current) {
+      const topOffset = formRef.current.getBoundingClientRect().top + window.pageYOffset - 150;
+      window.scrollTo({ top: topOffset, behavior: "smooth" });
+    }
   };
 
   const getSugarStatusFromValues = (fasting, postMeal) => {
@@ -197,7 +206,7 @@ function SugarLogPage() {
       <h1 className="text-3xl font-semibold text-center text-gray-800 mb-6">血糖紀錄</h1>
 
       {/* 表單區塊 */}
-      <div className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div ref={formRef} className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="block text-gray-700 text-sm font-medium">記錄日期</label>
           <input
@@ -318,6 +327,17 @@ function SugarLogPage() {
           )}
         </div>
       )}
+
+
+      {showCongrats && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none animate-fade-in-up">
+          <div className="w-60 h-60 bg-white rounded-full shadow-xl p-4 flex flex-col items-center justify-center">
+            <img src="/inu1.png" alt="鼓勵圖" className="w-32 h-32 object-contain" />
+            <p className="text-lg font-bold text-green-600 mt-2 text-center">你很棒❣️</p>
+          </div>
+        </div>
+      )}
+ 
 
       {/* 插圖 */}
       <div className="mt-8 text-center">

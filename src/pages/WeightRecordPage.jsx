@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Line } from "react-chartjs-2";
 import axios from "axios";
 import "chart.js/auto";
@@ -6,7 +6,9 @@ import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { confirmAlert } from 'react-confirm-alert';
 import 'react-confirm-alert/src/react-confirm-alert.css';
-import confetti from "canvas-confetti";
+import { handleWeightFeedback } from "../utils/weightFeedback";
+
+
 
 const WeightRecordPage = () => {
   const [height, setHeight] = useState("");
@@ -22,7 +24,7 @@ const WeightRecordPage = () => {
   const [profileLoaded, setProfileLoaded] = useState(false);
   const [loadingProfile, setLoadingProfile] = useState(false);
   const [bmiStatus, setBmiStatus] = useState("");
-  
+  const formRef = useRef(null);  
 
   useEffect(() => {
     fetchRecentRecords();
@@ -122,9 +124,14 @@ const WeightRecordPage = () => {
             return;
         }
 
-        const bmiValue = weightKg / ((heightCm / 100) ** 2);
+        // ✅ 這邊先定義
+        let latestRecordBeforeSave = null;
+        if (!editingId && weightRecords.length > 0) {
+            latestRecordBeforeSave = weightRecords[weightRecords.length - 1];
+        }
 
         try {
+            const bmiValue = weightKg / ((heightCm / 100) ** 2);
             const data = {
             height: heightCm,
             weight: weightKg,
@@ -132,8 +139,6 @@ const WeightRecordPage = () => {
             bmi: bmiValue,
             recordDate: recordDate || new Date().toISOString().split("T")[0]
             };
-
-            const latestRecord = weightRecords[weightRecords.length - 1]; // 🔍 抓上一筆紀錄
 
             if (editingId) {
             await axios.put(`http://localhost:8082/rest/health/weight/${editingId}`, data, {
@@ -145,24 +150,22 @@ const WeightRecordPage = () => {
                 withCredentials: true,
             });
 
-            // ✅ 新增模式才顯示鼓勵
-            if (latestRecord && weightKg < latestRecord.weight) {
-                toast.success("🎉 你進步了！太棒了！");
-                confetti({
-                particleCount: 120,
-                spread: 80,
-                origin: { y: 0.6 },
-                });
+            // ✅ 判斷進步／退步，觸發灑花與彈窗
+            if (!editingId && latestRecordBeforeSave) {
+            handleWeightFeedback(latestRecordBeforeSave.weight, weightKg);
             }
+
+            await fetchRecentRecords(); // 再更新資料
+            clearForm();
+            toast.success(`✅ BMI：${bmiValue.toFixed(2)}，紀錄成功`);
             }
 
             await fetchRecentRecords();
-            clearForm();
-            toast.success(`✅ BMI：${bmiValue.toFixed(2)}，紀錄成功`);
-        } catch (err) {
-            console.error("儲存失敗", err);
-            toast.error("紀錄失敗，請稍後再試");
-        }
+            clearForm();            
+            } catch (err) {
+                console.error("儲存失敗", err);
+                toast.error("紀錄失敗，請稍後再試");
+            }
         };
 
     const clearForm = () => {
@@ -182,8 +185,14 @@ const WeightRecordPage = () => {
         setBmi(record.bmi);
         setRecordDate(record.recordDate);
         setEditingId(record.recordId);
-    };
 
+        // ✅ 平滑滾動到表單區塊
+        if (formRef.current) {
+            const topOffset = formRef.current.getBoundingClientRect().top + window.pageYOffset - 150; // ← 自訂往上多一點
+            window.scrollTo({ top: topOffset, behavior: "smooth" });
+        }
+        };
+   
     const handleDelete = (id) => {
         confirmAlert({
             title: '刪除確認',
@@ -236,7 +245,10 @@ const WeightRecordPage = () => {
                 </button>
             </div>
 
-            <div className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div
+                ref={formRef}  // 👈 就加在這裡
+                className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-4"
+            >
                 <div>
                     <label className="block text-gray-700 text-sm font-medium">記錄日期</label>
                     <input
@@ -275,25 +287,6 @@ const WeightRecordPage = () => {
                 </div>
             </div>
 
-            {/* ✅ BMI 與目標體重提示 */}
-             {(bmi || (targetWeight && weight)) && (
-                <div className="bg-gray-50 p-6 rounded-lg shadow-md mb-6">
-                    {bmi && (
-                    <p className="text-xl font-semibold text-gray-800">BMI: {bmi.toFixed(2)}</p>
-                    )}
-                    {targetWeight && weight && !isNaN(parseFloat(weight)) && !isNaN(parseFloat(targetWeight)) && (
-                    <p className="text-base text-gray-600 mt-2">
-                        🎯 距離目標體重還有：
-                        <span className="font-semibold text-blue-600">
-                        {Math.abs(parseFloat(weight) - parseFloat(targetWeight)).toFixed(1)} kg
-                        </span>
-                        {parseFloat(weight) > parseFloat(targetWeight)
-                        ? "（差一點點了，加油！！）"
-                        : "（一定沒問題的！）"}
-                    </p>
-                    )}
-                </div>
-                )} {/* ← 注意這個括號不能少 */}
 
             <div className="mb-4 text-center">
                 <button
