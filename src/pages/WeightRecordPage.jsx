@@ -20,6 +20,7 @@ const WeightRecordPage = () => {
   const [recordDate, setRecordDate] = useState('');
   const [profileLoaded, setProfileLoaded] = useState(false);
   const [loadingProfile, setLoadingProfile] = useState(false);
+  
 
   useEffect(() => {
     fetchRecentRecords();
@@ -129,6 +130,7 @@ const WeightRecordPage = () => {
                 bmi: bmiValue,
                 recordDate: recordDate || new Date().toISOString().split("T")[0]
             };
+            console.log("🚀 傳給後端的 payload：", data);
 
             if (editingId) {
                 await axios.put(`http://localhost:8082/rest/health/weight/${editingId}`, data, {

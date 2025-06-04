@@ -80,6 +80,8 @@ function SugarLogPage() {
       notes
     };
 
+    console.log("送出的 payload：", payload);
+
     try {
       if (editingId) {
         await axios.put(`${API_BASE}/${editingId}`, payload, { withCredentials: true });
@@ -99,7 +101,7 @@ function SugarLogPage() {
   const clearForm = () => {
     setFasting('');
     setPostMeal('');
-    setRecordDate('');
+    setRecordDate(new Date().toISOString().split('T')[0]);
     setNotes('');
     setEditingId(null);
     setWarningMessages([]);
@@ -111,7 +113,6 @@ function SugarLogPage() {
     setRecordDate(record.recordDate);
     setNotes(record.notes || '');
     setEditingId(record.recordId);
-    setRecordDate(new Date().toISOString().split('T')[0]);
   };
 
   const getSugarStatusFromValues = (fasting, postMeal) => {

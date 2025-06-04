@@ -64,7 +64,7 @@ function BPRecordPage() {
       systolic: sys,
       diastolic: dia,
       recordDate: recordDate || new Date().toISOString().split('T')[0],
-      notes: notes
+      notes: notes.trim() === "" ? null : notes.trim()
     };
 
     try {
