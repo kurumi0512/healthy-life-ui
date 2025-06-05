@@ -46,14 +46,15 @@ function App() {
 
       {/* ✅ ToastContainer 應該放在 Routes 外層 */}
       <ToastContainer
+        limit={1}
         position="top-right"
-        autoClose={3500}          // 2 秒自動關閉
-        hideProgressBar={false}   // 顯示進度條
-        newestOnTop={false}
+        autoClose={2000}
+        hideProgressBar={false}
+        newestOnTop={true}
         closeOnClick
         pauseOnHover
         draggable
-        theme="light"             // light / dark / colored
+        theme="light"
       />
 
       <Routes>

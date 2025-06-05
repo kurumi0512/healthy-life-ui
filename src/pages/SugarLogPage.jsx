@@ -6,7 +6,6 @@ import 'react-toastify/dist/ReactToastify.css';
 import { confirmAlert } from 'react-confirm-alert';
 import 'react-confirm-alert/src/react-confirm-alert.css';
 
-
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -33,23 +32,19 @@ function SugarLogPage() {
   const [showAll, setShowAll] = useState(false);
   const [showCongrats, setShowCongrats] = useState(false);
   const [lastRecordDate, setLastRecordDate] = useState(null);
+  const [showHealthTip, setShowHealthTip] = useState(false);
   const formRef = useRef(null);
 
   useEffect(() => {
     fetchRecords();
     fetchLastRecordDate();
-  }, []);
-
-  useEffect(() => {
-    const today = new Date().toISOString().split('T')[0]; // 取得 yyyy-mm-dd 格式
+    const today = new Date().toISOString().split('T')[0];
     setRecordDate(today);
   }, []);
 
   const fetchRecords = async () => {
     try {
-      const res = await axios.get(`${API_BASE}`, {
-        withCredentials: true
-      });
+      const res = await axios.get(`${API_BASE}`, { withCredentials: true });
       setRecords(res.data);
     } catch (err) {
       console.error('查詢失敗', err);
@@ -58,10 +53,8 @@ function SugarLogPage() {
 
   const fetchLastRecordDate = async () => {
     try {
-      const res = await axios.get(`${API_BASE}/latest`, {
-        withCredentials: true
-      });
-      setLastRecordDate(res.data?.data?.recordDate); // 格式：yyyy-MM-dd
+      const res = await axios.get(`${API_BASE}/latest`, { withCredentials: true });
+      setLastRecordDate(res.data?.data?.recordDate);
     } catch (err) {
       console.error("查詢最後紀錄失敗", err);
     }
@@ -71,18 +64,19 @@ function SugarLogPage() {
     try {
       const res = await axios.get(`${API_BASE}/latest`, { withCredentials: true });
       const last = res.data?.data;
+      toast.dismiss();
 
       if (last) {
         setFasting(last.fasting.toString());
         setPostMeal(last.postMeal.toString());
         setNotes(last.notes || '');
-        toast.success("已載入上一筆血糖紀錄！");
+        toast.success("已載入上一筆血糖紀錄！", { toastId: 'load-record' });
       } else {
-        toast.info("尚無上一筆紀錄可供複製");
+        toast.info("尚無上一筆紀錄可供複製", { toastId: 'no-record' });
       }
     } catch (err) {
       console.error("載入上一筆血糖紀錄失敗", err);
-      toast.error("無法取得上一筆紀錄");
+      toast.error("無法取得上一筆紀錄", { toastId: 'load-error' });
     }
   };
 
@@ -90,17 +84,19 @@ function SugarLogPage() {
     const fastingValue = parseFloat(fasting);
     const postMealValue = parseFloat(postMeal);
 
+    toast.dismiss();
+
     if (
       isNaN(fastingValue) || isNaN(postMealValue) ||
       fastingValue < 30 || fastingValue > 250 ||
       postMealValue < 30 || postMealValue > 250
     ) {
-      toast.error('餐前/餐後血糖應介於 30～250 mg/dL 之間');
+      toast.error('餐前/餐後血糖應介於 30～250 mg/dL 之間', { toastId: 'range-error' });
       return;
     }
 
     if (notes.length > 50) {
-      toast.error('備註最多 50 字');
+      toast.error('備註最多 50 字', { toastId: 'note-limit' });
       return;
     }
 
@@ -114,8 +110,6 @@ function SugarLogPage() {
       notes
     };
 
-    console.log("送出的 payload：", payload);
-
     try {
       if (editingId) {
         await axios.put(`${API_BASE}/${editingId}`, payload, { withCredentials: true });
@@ -127,11 +121,13 @@ function SugarLogPage() {
       await fetchRecords();
       await fetchLastRecordDate();
 
-      await fetchRecords();
-      setShowCongrats(true);        // 顯示鼓勵動畫
-      setTimeout(() => setShowCongrats(false), 4000); // 4秒後自動消失
+      setTimeout(() => setShowCongrats(true), 500);
+      setTimeout(() => setShowCongrats(false), 3500);
+      setTimeout(() => setShowHealthTip(true), 3600);
+      setTimeout(() => setShowHealthTip(false), 8000);
       setTimeout(() => clearForm(), 5000);
-      toast.success(editingId ? "血糖紀錄更新成功" : "血糖紀錄儲存成功");
+
+      toast.success(editingId ? "血糖紀錄更新成功" : "血糖紀錄儲存成功", { toastId: 'save-success' });
     } catch (err) {
       console.error('儲存失敗', err);
     }
@@ -197,9 +193,11 @@ function SugarLogPage() {
               await axios.delete(`${API_BASE}/${id}`, { withCredentials: true });
               await fetchRecords();
               await fetchLastRecordDate();
+              toast.dismiss();
               toast.success('已成功刪除紀錄');
             } catch (err) {
               console.error('刪除失敗', err);
+              toast.dismiss();
               toast.error('刪除失敗，請稍後再試');
             }
           }
@@ -335,14 +333,19 @@ function SugarLogPage() {
         </div>
       </div>
 
-      {/* 警告訊息 */}
+      {/* AI 健康提示區塊
       {warningMessages.length > 0 && (
-        <div className="bg-yellow-50 border-l-4 border-yellow-400 text-sm p-4 mb-6 rounded space-y-1">
-          {warningMessages.map((msg, i) => (
-            <p key={i} className={msg.color}>{msg.message}</p>
-          ))}
+        <div className="mt-4 p-4 bg-white border rounded-lg shadow-md">
+          <h4 className="font-semibold text-gray-800 mb-2">🧠 健康狀態建議</h4>
+          <ul className="space-y-1 text-sm leading-relaxed">
+            {warningMessages.map((msg, i) => (
+              <li key={i} className={`${msg.color} flex items-center`}>
+                <span className="mr-2">{msg.message}</span>
+              </li>
+            ))}
+          </ul>
         </div>
-      )}
+      )} */}
 
       {/* 圖表區 */}
       {records.length > 0 && (
@@ -402,7 +405,20 @@ function SugarLogPage() {
           </div>
         </div>
       )}
- 
+
+     {showHealthTip && warningMessages.length > 0 && (
+      <div className="fixed bottom-6 right-6 bg-white shadow-lg rounded-lg p-4 border-l-4 border-yellow-400 w-80 z-50">
+        <div className="flex justify-between items-center">
+          <h4 className="text-sm font-semibold text-yellow-600">📢 健康提醒</h4>
+          <button onClick={() => setShowHealthTip(false)} className="text-gray-500 hover:text-gray-700">✖</button>
+        </div>
+        <ul className="mt-1 text-sm text-gray-800 space-y-1">
+          {warningMessages.map((msg, i) => (
+            <li key={i} className={msg.color}>{msg.message}</li>
+          ))}
+        </ul>
+      </div>
+    )}
 
       {/* 插圖 */}
       <div className="mt-8 text-center">

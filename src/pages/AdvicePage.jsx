@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import { EventSourcePolyfill } from 'event-source-polyfill';
 import { toast } from 'react-toastify';
@@ -10,7 +10,39 @@ function AdvicePage() {
   const [goal, setGoal] = useState("減重");
   const [advice, setAdvice] = useState("");
   const [loading, setLoading] = useState(false);
-  const [filled, setFilled] = useState(false); // 避免重複填入
+  const [filled, setFilled] = useState(false);
+  const [adviceLoaded, setAdviceLoaded] = useState(false);
+
+  const [previousAdvice, setPreviousAdvice] = useState("");
+  const [previousInput, setPreviousInput] = useState("");
+
+  const fetchLatestAdvice = () => {
+    fetch("http://localhost:8082/rest/health/healthAI/history/latest", {
+      credentials: "include"
+    })
+      .then(res => res.json())
+      .then(res => {
+        console.log("🔍 取得歷史建議回應：", res);
+        if (res.data) {
+          setPreviousAdvice(res.data.generatedAdvice);
+          setPreviousInput(res.data.inputContext || "");
+        } else {
+          setPreviousAdvice("");
+          setPreviousInput("");
+        }
+        setAdviceLoaded(true); // ✅ 成功時設定為已載入
+      })
+      .catch(err => {
+        console.error("載入歷史建議失敗", err);
+        setPreviousAdvice("");
+        setPreviousInput("");
+        setAdviceLoaded(true); // ✅ 即使失敗也設為已載入，避免無限 loading
+      });
+  };
+
+  useEffect(() => {
+    fetchLatestAdvice();
+  }, []);
 
   const handleAutoFill = async () => {
     if (filled) {
@@ -19,10 +51,7 @@ function AdvicePage() {
     }
 
     try {
-      // 取得個人基本資料（身高、生日、目標）
-      const profileRes = await fetch('http://localhost:8082/rest/profile', {
-        credentials: 'include'
-      });
+      const profileRes = await fetch('http://localhost:8082/rest/profile', { credentials: 'include' });
       const profileData = await profileRes.json();
 
       if (profileData.birthDate) {
@@ -39,10 +68,7 @@ function AdvicePage() {
       if (profileData.goal) setGoal(profileData.goal);
       if (profileData.height) setHeight(profileData.height.toString());
 
-      // 取得最新體重紀錄
-      const weightRes = await fetch('http://localhost:8082/rest/health/weight/latest', {
-        credentials: 'include'
-      });
+      const weightRes = await fetch('http://localhost:8082/rest/health/weight/latest', { credentials: 'include' });
       const weightData = await weightRes.json();
       if (weightData?.data?.weight) {
         setWeight(weightData.data.weight.toString());
@@ -64,12 +90,13 @@ function AdvicePage() {
       return;
     }
 
+    setPreviousAdvice(advice);
+    setPreviousInput(`身高：${height}cm、體重：${weight}kg、年齡：${age}歲、目標：${goal}`);
+
     setAdvice("");
     setLoading(true);
 
     const url = `http://localhost:8082/rest/health/healthAI/advice-stream?height=${height}&weight=${weight}&age=${age}&goal=${goal}`;
-    console.log("送出的請求 URL：", url);
-
     const eventSource = new EventSourcePolyfill(url, { withCredentials: true });
 
     eventSource.onmessage = (event) => {
@@ -79,14 +106,12 @@ function AdvicePage() {
       if (data === "[DONE]") {
         eventSource.close();
         setLoading(false);
+        fetchLatestAdvice();
         return;
       }
 
-      const formattedData = data
-        .replace(/•/g, '\n\n•')
-        .replace(/\n/g, '\n\n');
-
-      setAdvice((prev) => prev + formattedData);
+      const formattedData = data.replace(/•/g, '\n\n•').replace(/\n/g, '\n\n');
+      setAdvice(prev => prev + formattedData);
     };
 
     eventSource.onerror = (err) => {
@@ -100,7 +125,6 @@ function AdvicePage() {
     <div className="max-w-xl mx-auto p-6 pt-24">
       <h2 className="text-2xl font-bold mb-4 text-center">AI 健康建議生成器</h2>
 
-      {/* 一鍵載入個人資料 */}
       <div className="text-right mb-4">
         <button
           type="button"
@@ -184,6 +208,26 @@ function AdvicePage() {
         <div className="whitespace-pre-wrap break-words border border-gray-300 rounded p-4 bg-gray-50 max-h-[600px] overflow-y-auto leading-relaxed text-[15px]">
           <ReactMarkdown>{advice}</ReactMarkdown>
         </div>
+      )}
+
+      {!loading && !adviceLoaded ? (
+        <p className="text-gray-400 mt-6 text-center">🔄 正在載入上一筆建議...</p>
+      ) : !loading && previousAdvice ? (
+        <details className="mt-8 border border-gray-200 rounded bg-white shadow-sm open:ring-2 open:ring-blue-200 transition-all group">
+          <summary className="font-semibold text-gray-700 cursor-pointer px-4 py-2 select-none">
+            📜 上一筆建議（點擊展開）
+          </summary>
+          <div className="relative px-4 pb-4 pt-2 max-h-[120px] overflow-hidden group-open:max-h-[600px] group-open:overflow-y-auto transition-all duration-300">
+            <div className="whitespace-pre-wrap break-words text-sm text-gray-700">
+              <ReactMarkdown>{previousAdvice}</ReactMarkdown>
+            </div>
+
+            {/* 遮罩效果（只在未展開時顯示） */}
+            <div className="absolute bottom-0 left-0 w-full h-12 bg-gradient-to-t from-white to-transparent group-open:hidden"></div>
+          </div>
+        </details>
+      ) : !loading && (
+        <p className="text-gray-400 mt-6 text-center">尚無上一筆建議，請先產生一筆建議</p>
       )}
     </div>
   );
