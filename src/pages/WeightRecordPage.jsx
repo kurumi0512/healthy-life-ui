@@ -24,10 +24,12 @@ const WeightRecordPage = () => {
   const [profileLoaded, setProfileLoaded] = useState(false);
   const [loadingProfile, setLoadingProfile] = useState(false);
   const [bmiStatus, setBmiStatus] = useState("");
+  const [lastRecordDate, setLastRecordDate] = useState(null);
   const formRef = useRef(null);  
 
   useEffect(() => {
     fetchRecentRecords();
+    fetchLastRecordDate();
     setRecordDate(new Date().toISOString().split('T')[0]);
     if (!profileLoaded) {
       loadProfileData(true); // 初始化只填空欄位
@@ -156,6 +158,7 @@ const WeightRecordPage = () => {
             }
 
             await fetchRecentRecords(); // 再更新資料
+            await fetchLastRecordDate();
             clearForm();
             toast.success(`✅ BMI：${bmiValue.toFixed(2)}，紀錄成功`);
             }
@@ -203,9 +206,10 @@ const WeightRecordPage = () => {
                     onClick: async () => {
                         try {
                             await axios.delete(`http://localhost:8082/rest/health/weight/${id}`, {
-                                withCredentials: true,
+                            withCredentials: true,
                             });
-                            await fetchRecentRecords();
+                            await fetchRecentRecords();         // ✅ 更新列表
+                            await fetchLastRecordDate();        // ✅ 補這一行
                             toast.success("已成功刪除紀錄");
                         } catch (err) {
                             console.error("刪除失敗", err);
@@ -230,11 +234,29 @@ const WeightRecordPage = () => {
         }],
     };
 
+    const fetchLastRecordDate = async () => {
+        try {
+            const res = await axios.get("http://localhost:8082/rest/health/weight/latest", {
+            withCredentials: true
+            });
+            const latest = res.data?.data;
+            if (latest?.recordDate) {
+            setLastRecordDate(latest.recordDate);
+            }
+        } catch (err) {
+            console.error("❌ 無法取得最新體重紀錄", err);
+        }
+    };
+
     return (
         <div className="max-w-4xl mx-auto mt-5 p-8 pt-24 bg-white rounded-lg shadow-lg">
             <ToastContainer position="top-right" autoClose={3000} />
             <h1 className="text-3xl font-semibold text-center text-gray-800 mb-6">體重紀錄</h1>
-
+            {lastRecordDate && (
+                <div className="text-sm text-gray-500 mb-2 text-center">
+                    🕰️ 上次紀錄：{lastRecordDate.replace(/-/g, "/")}
+                </div>
+            )}
             <div className="text-right mb-4">
                 <button
                 type="button"

@@ -1,6 +1,7 @@
 import React from 'react';
 import { createContext, useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 const AuthContext = createContext();
 
@@ -43,9 +44,11 @@ export const AuthProvider = ({ children }) => {
 
       return { success: true, user: result.user };
     } else {
+      toast.error(result.message || '登入失敗'); // 👈 加上 toast 提示
       return { success: false, message: result.message };
     }
   } catch (error) {
+    toast.error('登入失敗，請稍後再試'); // 👈 加上錯誤提示
     return { success: false, message: '登入失敗，請稍後再試' };
   }
 };

@@ -28,12 +28,14 @@ function BPRecordPage() {
   const [showAllBp, setShowAllBp] = useState(false);
   const [recordDate, setRecordDate] = useState('');
   const [showCongrats, setShowCongrats] = useState(false);
+  const [lastRecordDate, setLastRecordDate] = useState(null);
   const formRef = useRef(null);
 
   useEffect(() => {
     const today = new Date().toISOString().split('T')[0];
     setRecordDate(today); // 設定預設日期
     fetchRecords();
+    fetchLastRecordDate();
   }, []);
 
   const fetchRecords = async () => {
@@ -81,6 +83,7 @@ function BPRecordPage() {
       }
 
       await fetchRecords();
+      await fetchLastRecordDate();
       clearForm();
 
       // ✅ 成功提示
@@ -127,6 +130,7 @@ function BPRecordPage() {
                 withCredentials: true
               });
               await fetchRecords();
+              await fetchLastRecordDate();
               toast.success('已成功刪除血壓紀錄');
             } catch (err) {
               console.error('刪除失敗', err);
@@ -195,10 +199,72 @@ function BPRecordPage() {
     ]
   };
 
+  const fetchLastRecordDate = async () => {
+    try {
+      const res = await axios.get("http://localhost:8082/rest/health/bp/latest", {
+        withCredentials: true,
+      });
+      const latest = res.data?.data;
+      if (latest?.recordDate) {
+        setLastRecordDate(latest.recordDate);
+      } else {
+        setLastRecordDate(null);
+      }
+    } catch (err) {
+      console.error("查詢最後紀錄失敗", err);
+    }
+  };
+
+  const loadLastBpRecord = async () => {
+    try {
+      const res = await axios.get("http://localhost:8082/rest/health/bp/latest", {
+        withCredentials: true,
+      });
+      const last = res.data?.data;
+      if (last) {
+        setSystolic(last.systolic.toString());
+        setDiastolic(last.diastolic.toString());
+        setNotes(last.notes || '');
+        toast.success("已載入上一筆血壓紀錄！");
+      } else {
+        toast.info("尚無上一筆紀錄可供複製");
+      }
+    } catch (err) {
+      console.error("載入上一筆紀錄失敗", err);
+      toast.error("無法載入上一筆紀錄");
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto mt-5 p-8 pt-24 bg-white rounded-lg shadow-lg">
       <ToastContainer position="top-right" />
       <h1 className="text-3xl font-semibold text-center text-gray-800 mb-6">血壓紀錄</h1>
+
+
+      {lastRecordDate && (() => {
+        const last = new Date(lastRecordDate);
+        const today = new Date();
+        const diff = Math.floor((today - last) / (1000 * 60 * 60 * 24));
+
+        return (
+          <div className="text-sm text-center text-gray-600 mb-2">
+            <p className={diff >= 3 ? "text-red-500" : "text-gray-500"}>
+              {diff >= 3
+                ? `⏰ 已超過 ${diff} 天未填寫，記得定期紀錄！`
+                : `🕰️ 上次紀錄：${lastRecordDate.replace(/-/g, "/")}`}
+            </p>
+          </div>
+        );
+      })()}
+
+      <div className="text-right mb-2">
+        <button
+          onClick={loadLastBpRecord}
+          className="bg-blue-200 hover:bg-blue-300 text-blue-900 font-semibold py-2 px-4 rounded shadow-sm transition"
+        >
+          🔁 複製上一筆紀錄
+        </button>
+      </div>
 
       {/* 表單區塊 */}
       <div ref={formRef} className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-4">

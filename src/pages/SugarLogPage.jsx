@@ -32,10 +32,12 @@ function SugarLogPage() {
   const [warningMessages, setWarningMessages] = useState([]);
   const [showAll, setShowAll] = useState(false);
   const [showCongrats, setShowCongrats] = useState(false);
+  const [lastRecordDate, setLastRecordDate] = useState(null);
   const formRef = useRef(null);
 
   useEffect(() => {
     fetchRecords();
+    fetchLastRecordDate();
   }, []);
 
   useEffect(() => {
@@ -51,6 +53,36 @@ function SugarLogPage() {
       setRecords(res.data);
     } catch (err) {
       console.error('查詢失敗', err);
+    }
+  };
+
+  const fetchLastRecordDate = async () => {
+    try {
+      const res = await axios.get(`${API_BASE}/latest`, {
+        withCredentials: true
+      });
+      setLastRecordDate(res.data?.data?.recordDate); // 格式：yyyy-MM-dd
+    } catch (err) {
+      console.error("查詢最後紀錄失敗", err);
+    }
+  };
+
+  const loadLastSugarRecord = async () => {
+    try {
+      const res = await axios.get(`${API_BASE}/latest`, { withCredentials: true });
+      const last = res.data?.data;
+
+      if (last) {
+        setFasting(last.fasting.toString());
+        setPostMeal(last.postMeal.toString());
+        setNotes(last.notes || '');
+        toast.success("已載入上一筆血糖紀錄！");
+      } else {
+        toast.info("尚無上一筆紀錄可供複製");
+      }
+    } catch (err) {
+      console.error("載入上一筆血糖紀錄失敗", err);
+      toast.error("無法取得上一筆紀錄");
     }
   };
 
@@ -93,8 +125,11 @@ function SugarLogPage() {
       }
 
       await fetchRecords();
+      await fetchLastRecordDate();
+
+      await fetchRecords();
       setShowCongrats(true);        // 顯示鼓勵動畫
-      setTimeout(() => setShowCongrats(false), 4000); // 2秒後自動消失
+      setTimeout(() => setShowCongrats(false), 4000); // 4秒後自動消失
       setTimeout(() => clearForm(), 5000);
       toast.success(editingId ? "血糖紀錄更新成功" : "血糖紀錄儲存成功");
     } catch (err) {
@@ -161,6 +196,7 @@ function SugarLogPage() {
             try {
               await axios.delete(`${API_BASE}/${id}`, { withCredentials: true });
               await fetchRecords();
+              await fetchLastRecordDate();
               toast.success('已成功刪除紀錄');
             } catch (err) {
               console.error('刪除失敗', err);
@@ -201,10 +237,37 @@ function SugarLogPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto mt-5 p-8 pt-24 bg-white rounded-lg shadow-lg">
-      <ToastContainer />
-      <h1 className="text-3xl font-semibold text-center text-gray-800 mb-6">血糖紀錄</h1>
+        <div className="max-w-4xl mx-auto mt-5 p-8 pt-24 bg-white rounded-lg shadow-lg">
+          <ToastContainer />
+          <h1 className="text-3xl font-semibold text-center text-gray-800 mb-6">血糖紀錄</h1>
 
+          {lastRecordDate ? (
+      (() => {
+        const lastDate = new Date(lastRecordDate);
+        const today = new Date();
+        const diffDays = Math.floor((today - lastDate) / (1000 * 60 * 60 * 24));
+
+        return (
+          <div className="text-sm mb-4 text-center">
+            <p className={diffDays >= 3 ? "text-red-500" : "text-gray-500"}>
+              {diffDays >= 3
+                ? `⏰ 已超過 ${diffDays} 天未填寫，記得定期紀錄！`
+                : `🕰️ 上次紀錄：${lastRecordDate.replace(/-/g, "/")}`}
+            </p>
+          </div>
+        );
+      })()
+    ) : null}   
+
+    <div className="text-right mb-4">
+      <button
+        onClick={loadLastSugarRecord}
+        className="bg-blue-200 hover:bg-blue-300 text-blue-900 font-semibold py-2 px-4 rounded shadow-sm transition"
+      >
+        🔁 複製上一筆紀錄
+      </button>
+    </div>
+      
       {/* 表單區塊 */}
       <div ref={formRef} className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
@@ -216,6 +279,8 @@ function SugarLogPage() {
             className="w-full px-4 py-2 mt-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
           />
         </div>
+
+        
         <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="block text-gray-700 text-sm font-medium">餐前血糖 (mg/dL)</label>
@@ -333,7 +398,7 @@ function SugarLogPage() {
         <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none animate-fade-in-up">
           <div className="w-60 h-60 bg-white rounded-full shadow-xl p-4 flex flex-col items-center justify-center">
             <img src="/inu1.png" alt="鼓勵圖" className="w-32 h-32 object-contain" />
-            <p className="text-lg font-bold text-green-600 mt-2 text-center">你很棒❣️</p>
+            <p className="text-lg font-bold text-green-600 mt-2 text-center">你很棒❣️持續努力💪</p>
           </div>
         </div>
       )}
