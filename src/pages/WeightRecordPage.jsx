@@ -250,7 +250,7 @@ const WeightRecordPage = () => {
 
     return (
         <div className="max-w-4xl mx-auto mt-5 p-8 pt-24 bg-white rounded-lg shadow-lg">
-            <ToastContainer position="top-right" autoClose={3000} />
+            <ToastContainer position="top-right" autoClose={2000} limit={1} />
             <h1 className="text-3xl font-semibold text-center text-gray-800 mb-6">體重紀錄</h1>
             {lastRecordDate && (
                 <div className="text-sm text-gray-500 mb-2 text-center">

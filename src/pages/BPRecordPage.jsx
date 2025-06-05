@@ -29,6 +29,9 @@ function BPRecordPage() {
   const [recordDate, setRecordDate] = useState('');
   const [showCongrats, setShowCongrats] = useState(false);
   const [lastRecordDate, setLastRecordDate] = useState(null);
+  const [showHealthTip, setShowHealthTip] = useState(false);
+  const [showImmediateTip, setShowImmediateTip] = useState(false);
+  const [bpStatus, setBpStatus] = useState({ message: '', color: '' });
   const formRef = useRef(null);
 
   useEffect(() => {
@@ -37,6 +40,15 @@ function BPRecordPage() {
     fetchRecords();
     fetchLastRecordDate();
   }, []);
+
+  useEffect(() => {
+    const today = new Date().toISOString().split('T')[0];
+    setRecordDate(today); // 設定預設日期
+    fetchRecords();
+    fetchLastRecordDate();
+  }, []);
+
+  
 
   const fetchRecords = async () => {
     try {
@@ -86,10 +98,27 @@ function BPRecordPage() {
       await fetchLastRecordDate();
       clearForm();
 
-      // ✅ 成功提示
-      toast.success(editingId ? " 血壓紀錄更新成功" : " 血壓紀錄儲存成功");
-      // 顯示鼓勵圖 2 秒
-      setShowCongrats(true);
+      toast.success(editingId ? " 血壓紀錄更新成功" : " 血壓紀錄儲存成功", {
+        autoClose: 2000
+      });
+
+      const abnormal = (sys > 140 || dia > 90 || sys < 90 || dia < 60);
+      const currentStatus = getBPStatusFromValues(sys, dia);
+      setBpStatus(currentStatus);
+
+      if (abnormal) {
+        // 延遲 1.2 秒才跳出右下角提醒
+        setTimeout(() => {
+          setShowHealthTip(true);
+          setTimeout(() => setShowHealthTip(false), 10000); // 顯示 10 秒
+        }, 1200);
+
+        // 儲存成功才顯示紅字（即時狀態）
+        setShowImmediateTip(true);
+      } else {
+        setShowImmediateTip(false);
+      }
+
       setTimeout(() => setShowCongrats(false), 4000);
     } catch (err) {
       console.error('儲存血壓失敗', err);
@@ -101,7 +130,8 @@ function BPRecordPage() {
     setDiastolic('');
     setNotes('');
     setEditingId(null);
-    setRecordDate(new Date().toISOString().split('T')[0]); // ← 清除後也顯示今天
+    setRecordDate(new Date().toISOString().split('T')[0]);
+    setShowImmediateTip(false);  // 🧼 同步清掉紅字
   };
 
   const handleEdit = (record) => {
@@ -131,10 +161,14 @@ function BPRecordPage() {
               });
               await fetchRecords();
               await fetchLastRecordDate();
-              toast.success('已成功刪除血壓紀錄');
+
+              // ✅ 防止重複 toast
+              toast.success('已成功刪除血壓紀錄', { toastId: 'bp-delete-success' });
             } catch (err) {
               console.error('刪除失敗', err);
-              toast.error(' 刪除失敗，請稍後再試');
+
+              // ✅ 錯誤也設 id 避免堆疊
+              toast.error('刪除失敗，請稍後再試', { toastId: 'bp-delete-fail' });
             }
           }
         },
@@ -147,14 +181,13 @@ function BPRecordPage() {
       ]
     });
   };
-
   const getBPStatusFromValues = (sys, dia) => {
     if (!sys || !dia) return { message: '', color: '' };
 
     if (sys > 140 || dia > 90) {
       return {
         message: '😰 血壓偏高，建議儘快就醫並調整作息',
-        color: 'text-red-500'
+        color: 'text-gray-500'
       };
     } else if (sys >= 120 || dia >= 80) {
       return {
@@ -225,19 +258,18 @@ function BPRecordPage() {
         setSystolic(last.systolic.toString());
         setDiastolic(last.diastolic.toString());
         setNotes(last.notes || '');
-        toast.success("已載入上一筆血壓紀錄！");
+        console.log("✅ 已載入上一筆血壓紀錄");
       } else {
-        toast.info("尚無上一筆紀錄可供複製");
+        console.log("ℹ️ 尚無上一筆紀錄可供複製");
       }
     } catch (err) {
-      console.error("載入上一筆紀錄失敗", err);
-      toast.error("無法載入上一筆紀錄");
+      console.error("❌ 載入上一筆紀錄失敗", err);
     }
   };
 
   return (
     <div className="max-w-4xl mx-auto mt-5 p-8 pt-24 bg-white rounded-lg shadow-lg">
-      <ToastContainer position="top-right" />
+      <ToastContainer position="top-right" autoClose={2000} limit={1} />
       <h1 className="text-3xl font-semibold text-center text-gray-800 mb-6">血壓紀錄</h1>
 
 
@@ -329,12 +361,12 @@ function BPRecordPage() {
         </div>
       </div>
 
-      {/* 即時判斷 */}
-      {status.message && (
+      {/* 即時判斷
+      {showImmediateTip && status.message && (
         <div className={`text-sm px-3 py-2 rounded ${status.color} ${status.bgColor}`}>
           {status.message}
         </div>
-      )}
+      )} */}
 
       {/* 圖表區塊 */}
       {bpRecords.length > 0 && (
@@ -415,6 +447,18 @@ function BPRecordPage() {
           <img src="/cat.png" alt="血壓紀錄" className="mx-auto w-80 rounded-lg" />
           <p className="mt-4 text-gray-600">保持健康的血壓，關注每一天！</p>
         </div>
+
+        {/* ✅ 健康提醒元件放這邊 */}
+        {showHealthTip && bpStatus.message && bpStatus.color !== 'text-green-400' && (
+          <div className="fixed bottom-6 right-6 bg-white shadow-lg rounded-lg p-4 border-l-4 border-yellow-400 w-80 z-50 animate-fade-in-up">
+            <div className="flex justify-between items-center">
+              <h4 className="text-sm font-semibold text-yellow-600">📢 健康提醒</h4>
+              <button onClick={() => setShowHealthTip(false)} className="text-gray-500 hover:text-gray-700">✖</button>
+            </div>
+            <p className={`mt-1 text-sm ${bpStatus.color}`}>{bpStatus.message}</p>
+          </div>
+        )}
+
       </div>
     </div>
   );

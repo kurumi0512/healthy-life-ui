@@ -60,7 +60,7 @@ function SugarLogPage() {
     }
   };
 
-  const loadLastSugarRecord = async () => {
+ const loadLastSugarRecord = async () => {
     try {
       const res = await axios.get(`${API_BASE}/latest`, { withCredentials: true });
       const last = res.data?.data;
@@ -70,13 +70,13 @@ function SugarLogPage() {
         setFasting(last.fasting.toString());
         setPostMeal(last.postMeal.toString());
         setNotes(last.notes || '');
-        toast.success("已載入上一筆血糖紀錄！", { toastId: 'load-record' });
+        console.log("已載入上一筆血糖紀錄");
       } else {
-        toast.info("尚無上一筆紀錄可供複製", { toastId: 'no-record' });
+        console.log("尚無上一筆紀錄可供複製");
       }
+
     } catch (err) {
       console.error("載入上一筆血糖紀錄失敗", err);
-      toast.error("無法取得上一筆紀錄", { toastId: 'load-error' });
     }
   };
 
@@ -122,12 +122,12 @@ function SugarLogPage() {
       await fetchLastRecordDate();
 
       setTimeout(() => setShowCongrats(true), 500);
-      setTimeout(() => setShowCongrats(false), 3500);
-      setTimeout(() => setShowHealthTip(true), 3600);
-      setTimeout(() => setShowHealthTip(false), 8000);
-      setTimeout(() => clearForm(), 5000);
+      setTimeout(() => setShowCongrats(false), 3000);
+      setTimeout(() => setShowHealthTip(true), 2000);
+      setTimeout(() => setShowHealthTip(false), 20000);
+      setTimeout(() => clearForm(), 25000);
 
-      toast.success(editingId ? "血糖紀錄更新成功" : "血糖紀錄儲存成功", { toastId: 'save-success' });
+      toast.success(editingId ? "血糖紀錄更新成功" : "血糖紀錄儲存成功", { toastId: 'save-success',autoClose: 2000});
     } catch (err) {
       console.error('儲存失敗', err);
     }
@@ -397,24 +397,24 @@ function SugarLogPage() {
       )}
 
 
-      {showCongrats && (
+      {/* {showCongrats && (
         <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none animate-fade-in-up">
           <div className="w-60 h-60 bg-white rounded-full shadow-xl p-4 flex flex-col items-center justify-center">
             <img src="/inu1.png" alt="鼓勵圖" className="w-32 h-32 object-contain" />
             <p className="text-lg font-bold text-green-600 mt-2 text-center">你很棒❣️持續努力💪</p>
           </div>
         </div>
-      )}
+      )} */}
 
      {showHealthTip && warningMessages.length > 0 && (
       <div className="fixed bottom-6 right-6 bg-white shadow-lg rounded-lg p-4 border-l-4 border-yellow-400 w-80 z-50">
         <div className="flex justify-between items-center">
-          <h4 className="text-sm font-semibold text-yellow-600">📢 健康提醒</h4>
+          <h4 className="text-sm font-semibold text-gray-600">📢 健康提醒</h4>
           <button onClick={() => setShowHealthTip(false)} className="text-gray-500 hover:text-gray-700">✖</button>
         </div>
         <ul className="mt-1 text-sm text-gray-800 space-y-1">
           {warningMessages.map((msg, i) => (
-            <li key={i} className={msg.color}>{msg.message}</li>
+            <li key={i} className="text-gray-800">{msg.message}</li>
           ))}
         </ul>
       </div>
