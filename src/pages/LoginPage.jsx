@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import Swal from 'sweetalert2';
 
 function LoginPage() {
   const [username, setUsername] = useState('');
@@ -9,7 +10,7 @@ function LoginPage() {
   const [captchaImage, setCaptchaImage] = useState('http://localhost:8082/rest/health/captcha');
   const [errors, setErrors] = useState({});
 
-  const { login, user } = useAuth(); // ✅ user 狀態來自 context
+  const { login } = useAuth(); // ✅ 從 context 拿 login 方法
   const navigate = useNavigate();
 
   const refreshCaptcha = () => {
@@ -34,19 +35,28 @@ function LoginPage() {
 
     if (result.success) {
       const user = result.user;
-      console.log('✅ 登入成功使用者資料：', user); // ✅ 檢查 userCompleted 是否存在
+      console.log('✅ 登入成功使用者資料：', user);
 
-      setTimeout(() => {
-        if (user.role === "ADMIN") {
-          navigate("/admin/dashboard");
-        } else if (!user.userCompleted) {
-          navigate("/profile"); // 👈 沒填過個人資料 → 導向會員中心
-        } else {
-          navigate("/home"); // 👈 資料完整 → 進入主頁
-        }
-      }, 300);
+      await Swal.fire({
+        icon: 'success',
+        title: '登入成功',
+        text: '歡迎回來！',
+        confirmButtonText: '進入系統'
+      });
+
+      if (user.role === "ADMIN") {
+        navigate("/admin/dashboard");
+      } else if (!user.userCompleted) {
+        navigate("/profile");
+      } else {
+        navigate("/home");
+      }
     } else {
-      alert(result.message);
+      await Swal.fire({
+        icon: 'error',
+        title: '登入失敗',
+        text: result.message || '請稍後再試'
+      });
       refreshCaptcha(); // ❗登入失敗時刷新驗證碼
     }
   };

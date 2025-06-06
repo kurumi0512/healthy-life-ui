@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
-import { toast } from 'react-toastify';
+import Swal from 'sweetalert2';
 
 function RegisterPage() {
   const [form, setForm] = useState({
@@ -12,8 +12,9 @@ function RegisterPage() {
   });
 
   const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
-  const { register } = useAuth(); // ✅ 呼叫 context 提供的 register 方法
+  const { register } = useAuth();
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -49,12 +50,16 @@ function RegisterPage() {
     return newErrors;
   };
 
-  // ✅ 正確包在 async function 中
   const handleSubmit = async (e) => {
   e.preventDefault();
+
+  if (isSubmitting) return;         // ⛔ 避免重複送出
+  setIsSubmitting(true);            // 🔒 鎖定按鈕
+
   const foundErrors = validate();
   if (Object.keys(foundErrors).length > 0) {
     setErrors(foundErrors);
+    setIsSubmitting(false);         // ❗驗證失敗也要解鎖
     return;
   }
 
@@ -66,11 +71,22 @@ function RegisterPage() {
   });
 
   if (result.success) {
-    toast.success(result.message); // ✅ 使用 toast 成功提示
+    await Swal.fire({
+      icon: 'success',
+      title: '註冊成功',
+      text: '請至信箱完成驗證，才能登入系統',
+      confirmButtonText: '前往登入'
+    });
     navigate('/login');
   } else {
-    toast.error(result.message); // ❌ 使用 toast 錯誤提示
+    await Swal.fire({
+      icon: 'error',
+      title: '註冊失敗',
+      text: result.message || '請稍後再試',
+    });
   }
+
+  setIsSubmitting(false); // ✅ 最後一定要解除鎖定
 };
 
   return (
@@ -117,8 +133,12 @@ function RegisterPage() {
         />
         {errors.confirmPassword && <p className="text-red-500 text-sm mt-1">{errors.confirmPassword}</p>}
 
-        <button type="submit" className="bg-green-600 text-white py-2 rounded hover:bg-green-700">
-          註冊
+        <button
+          type="submit"
+          className="bg-green-600 text-white py-2 rounded hover:bg-green-700 disabled:opacity-50"
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? '註冊中...' : '註冊'}
         </button>
 
         <div className="text-right">
@@ -132,4 +152,3 @@ function RegisterPage() {
 }
 
 export default RegisterPage;
-

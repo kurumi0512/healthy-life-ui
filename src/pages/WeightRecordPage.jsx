@@ -1,3 +1,4 @@
+// WeightRecordPage.jsx
 import React, { useState, useEffect, useRef } from "react";
 import { Line } from "react-chartjs-2";
 import axios from "axios";
@@ -7,8 +8,6 @@ import 'react-toastify/dist/ReactToastify.css';
 import { confirmAlert } from 'react-confirm-alert';
 import 'react-confirm-alert/src/react-confirm-alert.css';
 import { handleWeightFeedback } from "../utils/weightFeedback";
-
-
 
 const WeightRecordPage = () => {
   const [height, setHeight] = useState("");
@@ -25,14 +24,14 @@ const WeightRecordPage = () => {
   const [loadingProfile, setLoadingProfile] = useState(false);
   const [bmiStatus, setBmiStatus] = useState("");
   const [lastRecordDate, setLastRecordDate] = useState(null);
-  const formRef = useRef(null);  
+  const formRef = useRef(null);
 
   useEffect(() => {
     fetchRecentRecords();
     fetchLastRecordDate();
     setRecordDate(new Date().toISOString().split('T')[0]);
     if (!profileLoaded) {
-      loadProfileData(true); // 初始化只填空欄位
+      loadProfileData(true);
     }
   }, []);
 
@@ -54,201 +53,189 @@ const WeightRecordPage = () => {
     }
   };
 
+  const fetchLastRecordDate = async () => {
+    try {
+      const res = await axios.get("http://localhost:8082/rest/health/weight/latest", {
+        withCredentials: true
+      });
+      const latest = res.data?.data;
+      if (latest?.recordDate) {
+        setLastRecordDate(latest.recordDate);
+      }
+    } catch (err) {
+      console.error("❌ 無法取得最新體重紀錄", err);
+    }
+  };
+
   const loadProfileData = async (isInitialLoad = false) => {
     if (loadingProfile) return;
     try {
-        setLoadingProfile(true);
+      setLoadingProfile(true);
+      const res = await axios.get("http://localhost:8082/rest/profile", { withCredentials: true });
+      console.log("👀 後端回傳的 profile 結果：", res.data);
+      const data = res.data;
+      const weightRes = await axios.get("http://localhost:8082/rest/health/weight/latest", { withCredentials: true });
+      const latestWeight = weightRes.data?.data?.weight;
 
-        // 撈個人資料
-        const res = await axios.get("http://localhost:8082/rest/profile", { withCredentials: true });
-        const data = res.data;
+      if (data.height && (isInitialLoad || !height)) setHeight(data.height.toString());
+      if (data.targetWeight && (isInitialLoad || !targetWeight)) setTargetWeight(data.targetWeight.toString());
 
-        // 撈最新體重紀錄
-        const weightRes = await axios.get("http://localhost:8082/rest/health/weight/latest", { withCredentials: true });
-        const latestWeight = weightRes.data?.data?.weight;
-
-        // 計算年齡
-        if (data.birthDate) {
+      if (data.birthDate) {
         const birthDate = new Date(data.birthDate);
         const today = new Date();
         let ageCalc = today.getFullYear() - birthDate.getFullYear();
         const m = today.getMonth() - birthDate.getMonth();
         if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) ageCalc--;
-        if (!age || !isInitialLoad) setAge(ageCalc.toString());
+        if (isInitialLoad || !age) setAge(ageCalc.toString());
+      }
+
+      if (latestWeight !== undefined && latestWeight !== null && (isInitialLoad || !weight)) {
+        setWeight(latestWeight.toString());
         }
 
-        // 帶入身高、目標體重
-        if (data.height && (!height || !isInitialLoad)) setHeight(data.height.toString());
-        if (data.targetWeight && (!targetWeight || !isInitialLoad)) setTargetWeight(data.targetWeight.toString());
-
-        // ✅ 自動填入最新體重
-        if (latestWeight && (!weight || !isInitialLoad)) setWeight(latestWeight.toString());
-
-        if (!isInitialLoad) toast.success("個人資料已重新載入！");
-        setProfileLoaded(true);
+      if (!isInitialLoad) toast.success("個人資料已重新載入！");
+      setProfileLoaded(true);
     } catch (err) {
-        console.error("載入個人資料失敗", err);
-        toast.error("個人資料載入失敗");
+      console.error("載入個人資料失敗", err);
+      if (!isInitialLoad) toast.error("個人資料載入失敗");
     } finally {
-        setLoadingProfile(false);
+      setLoadingProfile(false);
     }
-    };
-    const calculateBmi = () => {
-        if (height && weight) {
-            const bmiValue = weight / (height / 100) ** 2;
-            setBmi(bmiValue);
-            if (bmiValue < 18.5) setBmiStatus("過輕");
-            else if (bmiValue < 24.9) setBmiStatus("正常");
-            else setBmiStatus("過重");
-        }
-    };
+  };
 
-    const saveWeightRecord = async () => {
-        const heightCm = parseFloat(height);
-        const weightKg = parseFloat(weight);
-        const ageNum = parseInt(age);
+  const calculateBmi = () => {
+    if (height && weight) {
+      const bmiValue = weight / (height / 100) ** 2;
+      setBmi(bmiValue);
+      if (bmiValue < 18.5) setBmiStatus("過輕");
+      else if (bmiValue < 24.9) setBmiStatus("正常");
+      else setBmiStatus("過重");
+    }
+  };
 
-        if (isNaN(heightCm) || isNaN(weightKg) || isNaN(ageNum)) {
-            toast.error("身高、體重與年齡必須是數字");
-            return;
-        }
+  const saveWeightRecord = async () => {
+    const heightCm = parseFloat(height);
+    const weightKg = parseFloat(weight);
+    const ageNum = parseInt(age);
 
-        if (heightCm < 50 || heightCm > 250) {
-            toast.error("輸入合理的身高（50 ~ 250 cm）");
-            return;
-        }
-        if (weightKg < 10 || weightKg > 300) {
-            toast.error("請輸入合理的體重（10 ~ 300 kg）");
-            return;
-        }
-        if (ageNum < 1 || ageNum > 120) {
-            toast.error("請輸入合理的年齡（1 ~ 120 歲）");
-            return;
-        }
+    if (isNaN(heightCm) || isNaN(weightKg) || isNaN(ageNum)) {
+      toast.error("身高、體重與年齡必須是數字");
+      return;
+    }
+    if (heightCm < 50 || heightCm > 250) {
+      toast.error("輸入合理的身高（50 ~ 250 cm）");
+      return;
+    }
+    if (weightKg < 10 || weightKg > 300) {
+      toast.error("請輸入合理的體重（10 ~ 300 kg）");
+      return;
+    }
+    if (ageNum < 1 || ageNum > 120) {
+      toast.error("請輸入合理的年齡（1 ~ 120 歲）");
+      return;
+    }
 
-        // ✅ 這邊先定義
-        let latestRecordBeforeSave = null;
-        if (!editingId && weightRecords.length > 0) {
-            latestRecordBeforeSave = weightRecords[weightRecords.length - 1];
-        }
+    let latestRecordBeforeSave = null;
+    if (!editingId && weightRecords.length > 0) {
+      latestRecordBeforeSave = weightRecords[weightRecords.length - 1];
+    }
 
-        try {
-            const bmiValue = weightKg / ((heightCm / 100) ** 2);
-            const data = {
-            height: heightCm,
-            weight: weightKg,
-            age: ageNum,
-            bmi: bmiValue,
-            recordDate: recordDate || new Date().toISOString().split("T")[0]
-            };
+    try {
+      const bmiValue = weightKg / ((heightCm / 100) ** 2);
+      const data = {
+        height: heightCm,
+        weight: weightKg,
+        age: ageNum,
+        bmi: bmiValue,
+        recordDate: recordDate || new Date().toISOString().split("T")[0]
+      };
 
-            if (editingId) {
-            await axios.put(`http://localhost:8082/rest/health/weight/${editingId}`, data, {
-                withCredentials: true,
-            });
-            setEditingId(null);
-            } else {
-            await axios.post("http://localhost:8082/rest/health/weight", data, {
-                withCredentials: true,
-            });
-
-            // ✅ 判斷進步／退步，觸發灑花與彈窗
-            if (!editingId && latestRecordBeforeSave) {
-            handleWeightFeedback(latestRecordBeforeSave.weight, weightKg);
-            }
-
-            await fetchRecentRecords(); // 再更新資料
-            await fetchLastRecordDate();
-            clearForm();
-            toast.success(`✅ BMI：${bmiValue.toFixed(2)}，紀錄成功`);
-            }
-
-            await fetchRecentRecords();
-            clearForm();            
-            } catch (err) {
-                console.error("儲存失敗", err);
-                toast.error("紀錄失敗，請稍後再試");
-            }
-        };
-
-    const clearForm = () => {
-        setHeight("");
-        setWeight("");
-        setAge("");
-        setBmi(null);
-        setBmiStatus("");
-        setRecordDate(new Date().toISOString().split('T')[0]);
-        setEditingId(null);
-    };
-
-    const handleEdit = (record) => {
-        setHeight(record.height);
-        setWeight(record.weight);
-        setAge(record.age);
-        setBmi(record.bmi);
-        setRecordDate(record.recordDate);
-        setEditingId(record.recordId);
-
-        // ✅ 平滑滾動到表單區塊
-        if (formRef.current) {
-            const topOffset = formRef.current.getBoundingClientRect().top + window.pageYOffset - 150; // ← 自訂往上多一點
-            window.scrollTo({ top: topOffset, behavior: "smooth" });
-        }
-        };
-   
-    const handleDelete = (id) => {
-        confirmAlert({
-            title: '刪除確認',
-            message: '確定要刪除這筆紀錄嗎？',
-            buttons: [
-                {
-                    label: '確定',
-                    onClick: async () => {
-                        try {
-                            await axios.delete(`http://localhost:8082/rest/health/weight/${id}`, {
-                            withCredentials: true,
-                            });
-                            await fetchRecentRecords();         // ✅ 更新列表
-                            await fetchLastRecordDate();        // ✅ 補這一行
-                            toast.success("已成功刪除紀錄");
-                        } catch (err) {
-                            console.error("刪除失敗", err);
-                            toast.error("刪除失敗，請稍後再試");
-                        }
-                    }
-                },
-                { label: '取消' }
-            ]
+      if (editingId) {
+        await axios.put(`http://localhost:8082/rest/health/weight/${editingId}`, data, {
+          withCredentials: true,
         });
-    };
-
-    const last10Records = weightRecords.slice(-10);
-    const chartData = {
-        labels: last10Records.map((r) => r.recordDate),
-        datasets: [{
-            label: "體重紀錄",
-            data: last10Records.map((r) => r.weight),
-            fill: false,
-            borderColor: "#4caf50",
-            tension: 0.1,
-        }],
-    };
-
-    const fetchLastRecordDate = async () => {
-        try {
-            const res = await axios.get("http://localhost:8082/rest/health/weight/latest", {
-            withCredentials: true
-            });
-            const latest = res.data?.data;
-            if (latest?.recordDate) {
-            setLastRecordDate(latest.recordDate);
-            }
-        } catch (err) {
-            console.error("❌ 無法取得最新體重紀錄", err);
+        setEditingId(null);
+      } else {
+        await axios.post("http://localhost:8082/rest/health/weight", data, {
+          withCredentials: true,
+        });
+        if (latestRecordBeforeSave) {
+          handleWeightFeedback(latestRecordBeforeSave.weight, weightKg);
         }
-    };
+        toast.success(`✅ BMI：${bmiValue.toFixed(2)}，紀錄成功`);
+      }
 
-    return (
+      await fetchRecentRecords();
+      await fetchLastRecordDate();
+      clearForm();
+    } catch (err) {
+      console.error("儲存失敗", err);
+      toast.error("紀錄失敗，請稍後再試");
+    }
+  };
+
+  const clearForm = () => {
+    setHeight("");
+    setWeight("");
+    setAge("");
+    setBmi(null);
+    setBmiStatus("");
+    setRecordDate(new Date().toISOString().split('T')[0]);
+    setEditingId(null);
+  };
+
+  const handleEdit = (record) => {
+    setHeight(record.height);
+    setWeight(record.weight);
+    setAge(record.age);
+    setBmi(record.bmi);
+    setRecordDate(record.recordDate);
+    setEditingId(record.recordId);
+    if (formRef.current) {
+      const topOffset = formRef.current.getBoundingClientRect().top + window.pageYOffset - 150;
+      window.scrollTo({ top: topOffset, behavior: "smooth" });
+    }
+  };
+
+  const handleDelete = (id) => {
+    confirmAlert({
+      title: '刪除確認',
+      message: '確定要刪除這筆紀錄嗎？',
+      buttons: [
+        {
+          label: '確定',
+          onClick: async () => {
+            try {
+              await axios.delete(`http://localhost:8082/rest/health/weight/${id}`, {
+                withCredentials: true,
+              });
+              await fetchRecentRecords();
+              await fetchLastRecordDate();
+              toast.success("已成功刪除紀錄");
+            } catch (err) {
+              console.error("刪除失敗", err);
+              toast.error("刪除失敗，請稍後再試");
+            }
+          }
+        },
+        { label: '取消' }
+      ]
+    });
+  };
+
+  const last10Records = weightRecords.slice(-10);
+  const chartData = {
+    labels: last10Records.map((r) => r.recordDate),
+    datasets: [{
+      label: "體重紀錄",
+      data: last10Records.map((r) => r.weight),
+      fill: false,
+      borderColor: "#4caf50",
+      tension: 0.1,
+    }],
+  };
+
+  return (
         <div className="max-w-4xl mx-auto mt-5 p-8 pt-24 bg-white rounded-lg shadow-lg">
             <ToastContainer position="top-right" autoClose={2000} limit={1} />
             <h1 className="text-3xl font-semibold text-center text-gray-800 mb-6">體重紀錄</h1>
