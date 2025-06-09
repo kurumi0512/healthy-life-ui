@@ -8,6 +8,11 @@ import 'react-toastify/dist/ReactToastify.css';
 import { confirmAlert } from 'react-confirm-alert';
 import 'react-confirm-alert/src/react-confirm-alert.css';
 import { handleWeightFeedback } from "../utils/weightFeedback";
+import WeightForm from "../components/weight/WeightForm";
+import WeightChart from "../components/weight/WeightChart";
+import WeightTrendCard from "../components/weight/WeightTrendCard";
+import WeightRecordList from "../components/weight/WeightRecordList";
+import WeightPandaTip from "../components/weight/WeightPandaTip";
 
 const WeightRecordPage = () => {
   const [height, setHeight] = useState("");
@@ -279,170 +284,37 @@ const WeightRecordPage = () => {
                 </button>
             </div>
 
-            <div
-                ref={formRef}  // 👈 就加在這裡
-                className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-4"
-            >
-                <div>
-                    <label className="block text-gray-700 text-sm font-medium">記錄日期</label>
-                    <input
-                        type="date"
-                        value={recordDate}
-                        onChange={(e) => setRecordDate(e.target.value)}
-                        className="w-full px-4 py-2 mt-2 rounded-lg border border-gray-300"
-                    />
-                </div>
-                <div>
-                    <label className="block text-gray-700 text-sm font-medium">身高 (cm)</label>
-                    <input
-                        type="number"
-                        value={height}
-                        onChange={(e) => setHeight(e.target.value)}
-                        className="w-full px-4 py-2 mt-2 rounded-lg border border-gray-300"
-                    />
-                </div>
-                <div>
-                    <label className="block text-gray-700 text-sm font-medium">體重 (kg)</label>
-                    <input
-                        type="number"
-                        value={weight}
-                        onChange={(e) => setWeight(e.target.value)}
-                        className="w-full px-4 py-2 mt-2 rounded-lg border border-gray-300"
-                    />
-                </div>
-                <div>
-                    <label className="block text-gray-700 text-sm font-medium">年齡</label>
-                    <input
-                        type="number"
-                        value={age}
-                        onChange={(e) => setAge(e.target.value)}
-                        className="w-full px-4 py-2 mt-2 rounded-lg border border-gray-300"
-                    />
-                </div>
-            </div>
+            <WeightForm
+              height={height}
+              setHeight={setHeight}
+              weight={weight}
+              setWeight={setWeight}
+              age={age}
+              setAge={setAge}
+              recordDate={recordDate}
+              setRecordDate={setRecordDate}
+              editingId={editingId}
+              onSubmit={saveWeightRecord}
+              onCancelEdit={clearForm}
+              formRef={formRef}
+            />
+
+            <WeightChart records={weightRecords} />
+
+            <WeightTrendCard records={recentWeightRecords} />
 
 
-            <div className="mb-4 text-center">
-                <button
-                    onClick={saveWeightRecord}
-                    className="px-4 py-2 bg-green-200 text-green-800 rounded-lg hover:bg-green-300 transition"
-                >
-                    {editingId ? "更新體重紀錄" : "儲存體重紀錄"}
-                </button>
-                {editingId && (
-                    <button
-                        onClick={clearForm}
-                        className="ml-4 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition"
-                    >
-                        取消編輯
-                    </button>
-                )}
-            </div>
+            <WeightRecordList
+              records={weightRecords}
+              showAll={showAll}
+              setShowAll={setShowAll}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+            />
+                        
 
-            {weightRecords.length > 0 && (
-                <div className="bg-gray-50 p-6 rounded-lg shadow-md">
-                    <h3 className="text-xl font-semibold text-gray-800">體重曲線圖</h3>
-                    <Line data={chartData} />
-                </div>
-            )}
-
-            {weightRecords.length >= 7 && (
-              <div className="mt-6 flex justify-center animate-fade-in-up">
-                <div className="w-full max-w-xl bg-white rounded-xl shadow-md border border-gray-200 px-6 py-4">
-                  <div className="flex items-center gap-3 mb-2">
-                    <span className={`text-2xl ${
-                      weightTrendMessage.includes('📉') ? 'text-blue-500' :
-                      weightTrendMessage.includes('📈') ? 'text-red-500' :
-                      'text-green-600'
-                    }`}>
-                      {weightTrendMessage.includes('📉') ? '📉' :
-                      weightTrendMessage.includes('📈') ? '📈' : '📊'}
-                    </span>
-                    <h4 className="text-lg font-bold text-gray-700">體重趨勢分析</h4>
-                  </div>
-                  <p className="text-gray-700">{weightTrendMessage.replace(/^[📉📈📊]\s/, '')}</p>
-                </div>
-              </div>
-            )}
-
-
-            <div className="mb-8 text-left">
-                <h3 className="mt-6 text-xl font-semibold text-gray-800">體重紀錄列表</h3>
-
-                {weightRecords.length === 0 ? (
-                    <p className="text-gray-500 text-center mt-4">尚無紀錄，請新增一筆體重資料  📝</p>
-                ) : (
-                    <div className="space-y-4 mt-4">
-                    {(showAll ? weightRecords.slice(0, 15) : weightRecords.slice(0, 5)).map((record, index) => {
-                        const heightCm = parseFloat(record.height);
-                        let bmi = null;
-                        let status = "";
-
-                        if (heightCm > 0) {
-                        const heightM = heightCm / 100;
-                        bmi = record.weight / (heightM * heightM);
-                        bmi = Math.round(bmi * 10) / 10;
-
-                        if (bmi < 18.5) status = "過輕";
-                        else if (bmi < 24) status = "正常";
-                        else if (bmi < 27) status = "過重";
-                        else status = "肥胖";
-                        }
-
-                        return (
-                        <div
-                            key={index}
-                            className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm flex justify-between items-center transition-all duration-300 animate-fade-in"
-                        >
-                            <div>
-                            <p className="text-gray-800 font-semibold">{record.recordDate}</p>
-                            <p className="text-base text-gray-600">體重: {record.weight} kg</p>
-                            <p className="text-sm text-gray-500">BMI: {bmi ? `${bmi} (${status})` : "無法計算"}</p>
-                            </div>
-                            <div className="flex flex-col items-end space-y-2 text-sm">
-                            <button
-                                onClick={() => handleEdit(record)}
-                                className="text-blue-600 hover:underline"
-                            >
-                                編輯
-                            </button>
-                            <button
-                                onClick={() => handleDelete(record.recordId)}
-                                className="text-red-600 hover:underline"
-                            >
-                                刪除
-                            </button>
-                            </div>
-                        </div>
-                        );
-                    })}
-                    </div>
-                )}
-            </div>
-
-            {weightRecords.length > 5 && (
-                <div className="mt-4 text-center">
-                    <button
-                    onClick={() => setShowAll(!showAll)}
-                    className="text-blue-600 hover:underline"
-                    >
-                    {showAll ? '顯示較少' : '顯示更多（最多 15 筆）'}
-                    </button>
-                    {showAll && weightRecords.length > 15 && (
-                    <p className="text-sm text-gray-400 mt-1">⚠️ 僅顯示最新 15 筆資料</p>
-                    )}
-                </div>
-                )}
+            <WeightPandaTip />
             
-
-            <div className="mt-8 text-center">
-                <img
-                    src="/panda.png"
-                    alt="熊貓加油"
-                    className="mx-auto w-80 rounded-lg shadow-none animate-wave"
-                />
-                <p className="mt-4 text-gray-600">保持健康的體重，邁向更好的生活！</p>
-            </div>
         </div>
     );
 };

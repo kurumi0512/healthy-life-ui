@@ -6,6 +6,10 @@ import 'react-toastify/dist/ReactToastify.css';
 import { confirmAlert } from 'react-confirm-alert';
 import 'react-confirm-alert/src/react-confirm-alert.css';
 import { filterAndLimitNotes } from '../utils/filterBadWords';
+import BPForm from '../components/bp/BPForm';
+import BPChart from '../components/bp/BPChart';
+import BPTrendCard from '../components/bp/BPTrendCard';
+import BPRecordList from '../components/bp/BPRecordList';
 
 import {
   Chart as ChartJS,
@@ -34,13 +38,6 @@ function BPRecordPage() {
   const [showImmediateTip, setShowImmediateTip] = useState(false);
   const [bpStatus, setBpStatus] = useState({ message: '', color: '' });
   const formRef = useRef(null);
-
-  useEffect(() => {
-    const today = new Date().toISOString().split('T')[0];
-    setRecordDate(today); // 設定預設日期
-    fetchRecords();
-    fetchLastRecordDate();
-  }, []);
 
   useEffect(() => {
     const today = new Date().toISOString().split('T')[0];
@@ -301,10 +298,10 @@ function BPRecordPage() {
   };
 
   return (
+  <>
     <div className="max-w-4xl mx-auto mt-5 p-8 pt-24 bg-white rounded-lg shadow-lg">
       <ToastContainer position="top-right" autoClose={2000} limit={1} />
       <h1 className="text-3xl font-semibold text-center text-gray-800 mb-6">血壓紀錄</h1>
-
 
       {lastRecordDate && (() => {
         const last = new Date(lastRecordDate);
@@ -331,187 +328,71 @@ function BPRecordPage() {
         </button>
       </div>
 
-      {/* 表單區塊 */}
-      <div ref={formRef} className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-gray-700 text-sm font-medium">記錄日期</label>
-          <input
-            type="date"
-            value={recordDate}
-            onChange={(e) => setRecordDate(e.target.value)}
-            className="w-full px-4 py-2 mt-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
-          />
-        </div>
-        <div>
-          <label className="block text-gray-700 text-sm font-medium">收縮壓 (mmHg)</label>
-          <input
-            type="number"
-            min="50"
-            max="250"
-            value={systolic}
-            onChange={(e) => setSystolic(e.target.value)}
-            className="w-full px-4 py-2 mt-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
-            placeholder="輸入收縮壓"
-          />
-        </div>
-        <div>
-          <label className="block text-gray-700 text-sm font-medium">舒張壓 (mmHg)</label>
-          <input
-            type="number"
-            min="50"
-            max="250"
-            value={diastolic}
-            onChange={(e) => setDiastolic(e.target.value)}
-            className="w-full px-4 py-2 mt-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
-            placeholder="輸入舒張壓"
-          />
-        </div>
-        <div className="md:col-span-2">
-          <label className="block text-gray-700 text-sm font-medium">備註（可選）</label>
-          <textarea
-            value={notes}
-            onChange={handleNoteChange}
-            rows={3}
-            className="w-full px-4 py-2 mt-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
-            placeholder="例如：頭暈、運動後量測..."
-          />
-        </div>
-        <div className="md:col-span-2 text-center space-x-2">
-          <button
-            onClick={saveBpRecord}
-            className="px-6 py-2 mt-4 bg-green-200 text-green-800 rounded-lg hover:bg-green-300 transition duration-300"
-          >
-            {editingId ? '更新血壓紀錄' : '儲存血壓紀錄'}
-          </button>
-          {editingId && (
-            <button
-              onClick={clearForm}
-              className="px-6 py-2 mt-4 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition duration-300"
-            >
-              取消編輯
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* 即時判斷
-      {showImmediateTip && status.message && (
-        <div className={`text-sm px-3 py-2 rounded ${status.color} ${status.bgColor}`}>
-          {status.message}
-        </div>
-      )} */}
+      <BPForm
+        formRef={formRef}
+        systolic={systolic}
+        setSystolic={setSystolic}
+        diastolic={diastolic}
+        setDiastolic={setDiastolic}
+        recordDate={recordDate}
+        setRecordDate={setRecordDate}
+        notes={notes}
+        handleNoteChange={handleNoteChange}
+        saveBpRecord={saveBpRecord}
+        editingId={editingId}
+        clearForm={clearForm}
+      />
 
       {/* 圖表區塊 */}
-      {bpRecords.length > 0 && (
-        <div className="bg-gray-50 p-6 rounded-lg shadow-md mb-6">
-          <h3 className="text-xl font-semibold text-gray-800">血壓變化曲線圖</h3>
-          <Line data={chartData} />
-        </div>
-      )}
+      {bpRecords.length > 0 && <BPChart chartData={chartData} />}
 
       {/* ✅ 最近 7 天趨勢分析區塊 */}
-      <div className="mt-6 flex justify-center animate-fade-in-up">
-        <div className="w-full max-w-xl bg-white rounded-xl shadow-md border border-gray-200 px-6 py-4">
-          <div className="flex items-center gap-3 mb-2">
-            <span className={`text-2xl ${trendMessage.includes('📈') ? 'text-green-500' 
-                                      : trendMessage.includes('📉') ? 'text-blue-500' 
-                                      : 'text-yellow-500'}`}>
-              {trendMessage.includes('📈') ? '📈' 
-              : trendMessage.includes('📉') ? '📉' 
-              : '⚠️'}
-            </span>
-            <h4 className="text-lg font-bold text-gray-700">最近 7 天血壓趨勢分析</h4>
-          </div>
-          <p className="text-gray-700">{trendMessage.replace(/^[📈📉⚠️]\s/, '')}</p>
-        </div>
-      </div>
+      {bpRecords.length >= 7 && <BPTrendCard trendMessage={trendMessage} />}
 
       {/* 血壓紀錄顯示區塊 */}
-      <div className="mt-8">
-        <h3 className="text-xl font-semibold text-gray-800 mb-4">血壓紀錄列表</h3>
-
-        {bpRecords.length === 0 ? (
-          <p className="text-gray-500 text-center mt-4">尚無紀錄，請新增一筆血壓資料 🩺</p>
-        ) : (
-          <div className="space-y-4">
-            {(showAllBp ? bpRecords.slice(0, 15) : bpRecords.slice(0, 5)).map((record, index) => {
-              const status = getBPStatusFromValues(record.systolic, record.diastolic);
-              return (
-                <div
-                  key={index}
-                  className="flex justify-between items-start p-4 rounded-lg shadow border border-gray-200 bg-white transition-all duration-300 animate-fade-in"
-                >
-                  <div>
-                    <div className="text-gray-800">
-                      <p className="text-gray-800 font-semibold">{record.recordDate}</p>
-                      <p className="text-sm text-gray-600">
-                      收縮壓：{record.systolic}、舒張壓：{record.diastolic} mmHg
-                      </p>
-                    </div>
-                    {record.notes && (
-                      <p className="text-sm text-gray-500 mt-1">備註：{record.notes}</p>
-                    )}
-                  </div>
-                  <div className="text-sm text-right space-x-2 whitespace-nowrap">
-                    <button onClick={() => handleEdit(record)} className="text-blue-600 hover:underline">
-                      編輯
-                    </button>
-                    <button onClick={() => handleDelete(record.recordId)} className="text-red-600 hover:underline">
-                      刪除
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-        {bpRecords.length > 5 && (
-          <div className="mt-4 text-center">
-            <button
-              onClick={() => setShowAllBp(!showAllBp)}
-              className="text-blue-600 hover:underline"
-            >
-              {showAllBp ? '顯示較少' : '顯示更多（最多 15 筆）'}
-            </button>
-            {showAllBp && bpRecords.length > 15 && (
-              <p className="text-sm text-gray-400 mt-1">⚠️ 只顯示最新 15 筆紀錄</p>
-            )}
-          </div>
-        )}
-
-        {showCongrats && (
-          <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
-            <div className="flex flex-col items-center bg-white rounded-xl p-4 shadow-xl animate-fade-in-up">
-              <img src="/inu.png" alt="恭喜完成紀錄" className="w-32 h-32 object-contain" />
-              <p className="text-green-600 font-bold text-base mt-2 text-center leading-snug break-words max-w-[160px]">
-                做得好！繼續保持 💪
-              </p>
-            </div>
-          </div>
-        )}
-
-
-        {/* 插圖 */}
-        <div className="mt-8 text-center">
-          <img src="/cat.png" alt="血壓紀錄" className="mx-auto w-80 rounded-lg" />
-          <p className="mt-4 text-gray-600">保持健康的血壓，關注每一天！</p>
-        </div>
-
-        {/* ✅ 健康提醒元件放這邊 */}
-        {showHealthTip && bpStatus.message && bpStatus.color !== 'text-green-400' && (
-          <div className="fixed bottom-6 right-6 bg-white shadow-lg rounded-lg p-4 border-l-4 border-yellow-400 w-80 z-50 animate-fade-in-up">
-            <div className="flex justify-between items-center">
-              <h4 className="text-sm font-semibold text-yellow-600">📢 健康提醒</h4>
-              <button onClick={() => setShowHealthTip(false)} className="text-gray-500 hover:text-gray-700">✖</button>
-            </div>
-            <p className={`mt-1 text-sm ${bpStatus.color}`}>{bpStatus.message}</p>
-          </div>
-        )}
-
-      </div>
+      <BPRecordList
+        records={bpRecords}
+        showAll={showAllBp}
+        setShowAll={setShowAllBp}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        getBPStatusFromValues={getBPStatusFromValues}
+      />
     </div>
+
+    {/* 🎉 成功紀錄彈窗 */}
+    {showCongrats && (
+      <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
+        <div className="flex flex-col items-center bg-white rounded-xl p-4 shadow-xl animate-fade-in-up">
+          <img src="/inu.png" alt="恭喜完成紀錄" className="w-32 h-32 object-contain" />
+          <p className="text-green-600 font-bold text-base mt-2 text-center leading-snug break-words max-w-[160px]">
+            做得好！繼續保持 💪
+          </p>
+        </div>
+      </div>
+    )}
+
+    {/* 插圖區塊 */}
+    <div className="mt-8 text-center">
+      <img src="/cat.png" alt="血壓紀錄" className="mx-auto w-80 rounded-lg" />
+      <p className="mt-4 text-gray-600">保持健康的血壓，關注每一天！</p>
+    </div>
+
+    {/* ✅ 健康提醒浮動區塊 */}
+      {showHealthTip && bpStatus.message && bpStatus.color !== 'text-green-400' && (
+        <div className="fixed bottom-6 right-6 bg-white shadow-lg rounded-lg p-4 border-l-4 border-yellow-400 w-80 z-50 animate-fade-in-up">
+          <div className="flex justify-between items-center">
+            <h4 className="text-sm font-semibold text-yellow-600">📢 健康提醒</h4>
+            <button onClick={() => setShowHealthTip(false)} className="text-gray-500 hover:text-gray-700">✖</button>
+          </div>
+          <p className={`mt-1 text-sm ${bpStatus.color}`}>{bpStatus.message}</p>
+        </div>
+      )}
+    </>
   );
 }
 
-export default BPRecordPage;
+  
+
+
+  export default BPRecordPage;

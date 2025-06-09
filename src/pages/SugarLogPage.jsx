@@ -6,6 +6,11 @@ import 'react-toastify/dist/ReactToastify.css';
 import { confirmAlert } from 'react-confirm-alert';
 import 'react-confirm-alert/src/react-confirm-alert.css';
 import { filterAndLimitNotes } from '../utils/filterBadWords';
+import SugarForm from "../components/sugar/SugarForm";
+import SugarChart from "../components/sugar/SugarChart";
+import SugarTrendCard from "../components/sugar/SugarTrendCard";
+import SugarRecordList from "../components/sugar/SugarRecordList";
+
 
 
 import {
@@ -164,7 +169,7 @@ function SugarLogPage() {
     setEditingId(record.recordId);
     // 👇 編輯時自動滑到上方表單
     if (formRef.current) {
-      const topOffset = formRef.current.getBoundingClientRect().top + window.pageYOffset - 150;
+      const topOffset = formRef.current.getBoundingClientRect().top + window.pageYOffset - 170;
       window.scrollTo({ top: topOffset, behavior: "smooth" });
     }
   };
@@ -307,71 +312,23 @@ function SugarLogPage() {
     </div>
       
       {/* 表單區塊 */}
-      <div ref={formRef} className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-gray-700 text-sm font-medium">記錄日期</label>
-          <input
-            type="date"
-            value={recordDate}
-            onChange={(e) => setRecordDate(e.target.value)}
-            className="w-full px-4 py-2 mt-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
-          />
-        </div>
-
-        
-        <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-gray-700 text-sm font-medium">餐前血糖 (mg/dL)</label>
-          <input
-            type="number"
-            min="30"
-            max="250"
-            value={fasting}
-            onChange={(e) => setFasting(e.target.value)}
-            className="w-full px-4 py-2 mt-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
-            placeholder="輸入餐前血糖"
-          />
-        </div>
-        <div>
-          <label className="block text-gray-700 text-sm font-medium">餐後血糖 (mg/dL)</label>
-          <input
-            type="number"
-            min="30"
-            max="250"
-            value={postMeal}
-            onChange={(e) => setPostMeal(e.target.value)}
-            className="w-full px-4 py-2 mt-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
-            placeholder="輸入餐後血糖"
-          />
-        </div>
-      </div>
-        <div className="md:col-span-2">
-          <label className="block text-gray-700 text-sm font-medium">備註（可選）</label>
-          <textarea
-            value={notes}
-            onChange={handleNoteChange}
-            rows={3}
-            className="w-full px-4 py-2 mt-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
-            placeholder="例如：今天有哪裡比較不舒服嗎?或是狀況一切ok。"
-          />
-        </div>
-        <div className="md:col-span-2 text-center space-x-2">
-          <button
-            onClick={saveSugarRecord}
-            className="px-6 py-2 mt-4 bg-green-200 text-green-800 rounded-lg hover:bg-green-300 transition duration-300"
-          >
-            {editingId ? '更新血糖紀錄' : '儲存血糖紀錄'}
-          </button>
-          {editingId && (
-            <button
-              onClick={clearForm}
-              className="px-6 py-2 mt-4 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition duration-300"
-            >
-              取消編輯
-            </button>
-          )}
-        </div>
-      </div>
+      <SugarForm
+        ref={formRef}
+        fasting={fasting}
+        postMeal={postMeal}
+        recordDate={recordDate}
+        notes={notes}
+        editingId={editingId}
+        onChange={(e) => {
+          const { name, value } = e.target;
+          if (name === 'fasting') setFasting(value);
+          if (name === 'postMeal') setPostMeal(value);
+          if (name === 'recordDate') setRecordDate(value);
+        }}
+        onNoteChange={handleNoteChange}
+        onSave={saveSugarRecord}
+        onCancel={clearForm}
+      />
 
       {/* AI 健康提示區塊
       {warningMessages.length > 0 && (
@@ -388,88 +345,28 @@ function SugarLogPage() {
       )} */}
 
       {/* 圖表區 */}
-      {records.length > 0 && (
-        <div className="bg-gray-50 p-6 rounded-lg shadow-md mb-6">
-          <h3 className="text-xl font-semibold text-gray-800">血糖變化圖表</h3>
-          <Line data={chartData} />
-        </div>
-      )}
+      <SugarChart chartData={chartData} />
 
       <div className="mb-6"></div>
 
       {records.length >= 7 && (
-        <div className="mt-6 flex justify-center animate-fade-in-up">
-          <div className="w-full max-w-xl bg-white rounded-xl shadow-md border border-gray-200 px-6 py-4">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <span className={`text-2xl ${
-                  sugarTrendMessage.includes('📈') ? 'text-green-500' :
-                  sugarTrendMessage.includes('📉') ? 'text-blue-500' :
-                  'text-yellow-500'
-                }`}>
-                  {sugarTrendMessage.includes('📈') ? '📈' :
-                  sugarTrendMessage.includes('📉') ? '📉' : '⚠️'}
-                </span>
-                <h4 className="text-lg font-bold text-gray-700">血糖趨勢分析</h4>
-              </div>
-
-              {/* 下拉選單 */}
-              <select
-                value={analysisTarget}
-                onChange={(e) => setAnalysisTarget(e.target.value)}
-                className="text-sm border border-gray-300 rounded px-2 py-1"
-              >
-                <option value="fasting">分析：餐前血糖</option>
-                <option value="postMeal">分析：餐後血糖</option>
-              </select>
-            </div>
-            <p className="text-gray-700">{sugarTrendMessage.replace(/^[📈📉⚠️]\s/, '')}</p>
-          </div>
-        </div>
+        <SugarTrendCard
+          sugarTrendMessage={sugarTrendMessage}
+          analysisTarget={analysisTarget}
+          setAnalysisTarget={setAnalysisTarget}
+        />
       )}
 
       <div className="mb-6"></div>
 
       {/* 紀錄列表 */}
-      <div>
-        <h3 className="text-xl font-semibold text-gray-800 mb-4">最近紀錄</h3>
-        {records.length === 0 ? (
-          <p className="text-gray-500 text-center">尚無紀錄，請新增資料 📝</p>
-        ) : (
-          <div className="space-y-4">
-            {(showAll ? records.slice(0, 15) : records.slice(0, 5)).map((r, i) => (
-              <div
-                key={i}
-                className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm flex justify-between items-center"
-              >
-                <div>
-                  <p className="text-gray-800 font-semibold">{r.recordDate}</p>
-                  <p className="text-sm text-gray-600">餐前血糖：{r.fasting}、餐後血糖：{r.postMeal}</p>
-                  {r.notes && <p className="text-sm text-gray-500">備註：{r.notes}</p>}
-                </div>
-                <div className="text-sm text-right space-x-2">
-                  <button onClick={() => handleEdit(r)} className="text-blue-600 hover:underline">編輯</button>
-                  <button onClick={() => handleDelete(r.recordId)} className="text-red-600 hover:underline">刪除</button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {records.length > 5 && (
-        <div className="mt-4 text-center">
-          <button
-            onClick={() => setShowAll(!showAll)}
-            className="text-blue-600 hover:underline"
-          >
-            {showAll ? '顯示較少' : '顯示更多（最多 15 筆）'}
-          </button>
-          {showAll && records.length > 15 && (
-            <p className="text-sm text-gray-400 mt-1">⚠️ 僅顯示最新 15 筆資料</p>
-          )}
-        </div>
-      )}
+      <SugarRecordList
+        records={records}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        showAll={showAll}
+        setShowAll={setShowAll}
+      />
 
 
       {/* {showCongrats && (
