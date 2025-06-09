@@ -5,6 +5,8 @@ import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { confirmAlert } from 'react-confirm-alert';
 import 'react-confirm-alert/src/react-confirm-alert.css';
+import { filterAndLimitNotes } from '../utils/filterBadWords';
+
 
 import {
   Chart as ChartJS,
@@ -33,6 +35,7 @@ function SugarLogPage() {
   const [showCongrats, setShowCongrats] = useState(false);
   const [lastRecordDate, setLastRecordDate] = useState(null);
   const [showHealthTip, setShowHealthTip] = useState(false);
+  const [analysisTarget, setAnalysisTarget] = useState('fasting');
   const formRef = useRef(null);
 
   useEffect(() => {
@@ -48,6 +51,17 @@ function SugarLogPage() {
       setRecords(res.data);
     } catch (err) {
       console.error('查詢失敗', err);
+    }
+  };
+
+  const handleNoteChange = (e) => {
+    const result = filterAndLimitNotes(e.target.value);
+    setNotes(result.text); // 更新備註內容
+
+    if (result.modified) {
+      toast.warn("⚠️ 備註含有不當字詞或過長，已自動處理", {
+        toastId: "note-warning"
+      });
     }
   };
 
@@ -234,6 +248,32 @@ function SugarLogPage() {
     ]
   };
 
+  const recentRecords = [...records]
+      .sort((a, b) => new Date(a.recordDate) - new Date(b.recordDate))
+      .slice(-7);
+
+    let sugarTrendMessage = '';
+    if (recentRecords.length === 7) {
+      const values = recentRecords.map(r => r[analysisTarget]);
+      const max = Math.max(...values);
+      const min = Math.min(...values);
+      const avg = values.reduce((a, b) => a + b, 0) / values.length;
+      const delta = values[0] - values[values.length - 1]; // 差值
+      const percent = ((Math.abs(delta) / values[0]) * 100).toFixed(1);
+
+      if (max - min <= 5) {
+        sugarTrendMessage = `📈 最近 7 天${analysisTarget === 'fasting' ? '餐前' : '餐後'}血糖穩定`;
+      } else if (values[0] > values[values.length - 1]) {
+        sugarTrendMessage = `📉 ${analysisTarget === 'fasting' ? '餐前' : '餐後'}血糖有下降趨勢（↓ ${percent}%）`;
+      } else {
+        sugarTrendMessage = `⚠️ ${analysisTarget === 'fasting' ? '餐前' : '餐後'}血糖變化波動較大`;
+      }
+
+      sugarTrendMessage += `（平均：${avg.toFixed(1)}，最高：${max}，最低：${min}）`;
+    }
+
+
+
   return (
         <div className="max-w-4xl mx-auto mt-5 p-8 pt-24 bg-white rounded-lg shadow-lg">
           <ToastContainer />
@@ -309,7 +349,7 @@ function SugarLogPage() {
           <label className="block text-gray-700 text-sm font-medium">備註（可選）</label>
           <textarea
             value={notes}
-            onChange={(e) => setNotes(e.target.value)}
+            onChange={handleNoteChange}
             rows={3}
             className="w-full px-4 py-2 mt-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
             placeholder="例如：今天有哪裡比較不舒服嗎?或是狀況一切ok。"
@@ -354,6 +394,41 @@ function SugarLogPage() {
           <Line data={chartData} />
         </div>
       )}
+
+      <div className="mb-6"></div>
+
+      {records.length >= 7 && (
+        <div className="mt-6 flex justify-center animate-fade-in-up">
+          <div className="w-full max-w-xl bg-white rounded-xl shadow-md border border-gray-200 px-6 py-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <span className={`text-2xl ${
+                  sugarTrendMessage.includes('📈') ? 'text-green-500' :
+                  sugarTrendMessage.includes('📉') ? 'text-blue-500' :
+                  'text-yellow-500'
+                }`}>
+                  {sugarTrendMessage.includes('📈') ? '📈' :
+                  sugarTrendMessage.includes('📉') ? '📉' : '⚠️'}
+                </span>
+                <h4 className="text-lg font-bold text-gray-700">血糖趨勢分析</h4>
+              </div>
+
+              {/* 下拉選單 */}
+              <select
+                value={analysisTarget}
+                onChange={(e) => setAnalysisTarget(e.target.value)}
+                className="text-sm border border-gray-300 rounded px-2 py-1"
+              >
+                <option value="fasting">分析：餐前血糖</option>
+                <option value="postMeal">分析：餐後血糖</option>
+              </select>
+            </div>
+            <p className="text-gray-700">{sugarTrendMessage.replace(/^[📈📉⚠️]\s/, '')}</p>
+          </div>
+        </div>
+      )}
+
+      <div className="mb-6"></div>
 
       {/* 紀錄列表 */}
       <div>

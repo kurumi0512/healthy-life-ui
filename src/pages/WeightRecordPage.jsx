@@ -93,7 +93,7 @@ const WeightRecordPage = () => {
         setWeight(latestWeight.toString());
         }
 
-      if (!isInitialLoad) toast.success("個人資料已重新載入！");
+      //if (!isInitialLoad) toast.success("個人資料已重新載入！");
       setProfileLoaded(true);
     } catch (err) {
       console.error("載入個人資料失敗", err);
@@ -235,6 +235,31 @@ const WeightRecordPage = () => {
     }],
   };
 
+  const recentWeightRecords = [...weightRecords]
+    .sort((a, b) => new Date(a.recordDate) - new Date(b.recordDate))
+    .slice(-7);
+
+  let weightTrendMessage = '';
+  if (recentWeightRecords.length === 7) {
+    const weights = recentWeightRecords.map(r => r.weight);
+    const max = Math.max(...weights);
+    const min = Math.min(...weights);
+    const avg = weights.reduce((a, b) => a + b, 0) / weights.length;
+    const change = weights[weights.length - 1] - weights[0];
+    const percent = ((Math.abs(change) / weights[0]) * 100).toFixed(1);
+
+    if (Math.abs(change) <= 1) {
+      weightTrendMessage = `📊 最近 7 天體重穩定（平均 ${avg.toFixed(1)}kg）`;
+    } else if (change < 0) {
+      weightTrendMessage = `📉 體重下降 ${Math.abs(change).toFixed(1)}kg（↓ ${percent}%），持續努力 👍`;
+    } else {
+      weightTrendMessage = `📈 體重上升 ${change.toFixed(1)}kg（↑ ${percent}%），建議檢視飲食與作息`;
+    }
+
+    weightTrendMessage += `（最高 ${max}kg，最低 ${min}kg）`;
+  }
+
+
   return (
         <div className="max-w-4xl mx-auto mt-5 p-8 pt-24 bg-white rounded-lg shadow-lg">
             <ToastContainer position="top-right" autoClose={2000} limit={1} />
@@ -319,6 +344,25 @@ const WeightRecordPage = () => {
                     <h3 className="text-xl font-semibold text-gray-800">體重曲線圖</h3>
                     <Line data={chartData} />
                 </div>
+            )}
+
+            {weightRecords.length >= 7 && (
+              <div className="mt-6 flex justify-center animate-fade-in-up">
+                <div className="w-full max-w-xl bg-white rounded-xl shadow-md border border-gray-200 px-6 py-4">
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className={`text-2xl ${
+                      weightTrendMessage.includes('📉') ? 'text-blue-500' :
+                      weightTrendMessage.includes('📈') ? 'text-red-500' :
+                      'text-green-600'
+                    }`}>
+                      {weightTrendMessage.includes('📉') ? '📉' :
+                      weightTrendMessage.includes('📈') ? '📈' : '📊'}
+                    </span>
+                    <h4 className="text-lg font-bold text-gray-700">體重趨勢分析</h4>
+                  </div>
+                  <p className="text-gray-700">{weightTrendMessage.replace(/^[📉📈📊]\s/, '')}</p>
+                </div>
+              </div>
             )}
 
 

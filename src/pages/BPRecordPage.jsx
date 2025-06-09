@@ -5,6 +5,7 @@ import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { confirmAlert } from 'react-confirm-alert';
 import 'react-confirm-alert/src/react-confirm-alert.css';
+import { filterAndLimitNotes } from '../utils/filterBadWords';
 
 import {
   Chart as ChartJS,
@@ -48,7 +49,34 @@ function BPRecordPage() {
     fetchLastRecordDate();
   }, []);
 
+  const handleNoteChange = (e) => {
+      const result = filterAndLimitNotes(e.target.value);
+      setNotes(result.text); // 更新備註內容
   
+      if (result.modified) {
+        toast.warn("⚠️ 備註含有不當字詞或過長，已自動處理", {
+          toastId: "note-warning"
+        });
+      }
+    };
+  
+  const recentRecords = [...bpRecords]
+  .sort((a, b) => new Date(a.recordDate) - new Date(b.recordDate))
+  .slice(-7);
+
+  const systolicValues = recentRecords.map(r => r.systolic);
+  const max = Math.max(...systolicValues);
+  const min = Math.min(...systolicValues);
+  const avg = systolicValues.reduce((a, b) => a + b, 0) / systolicValues.length;
+
+  let trendMessage = '';
+  if (max - min <= 5) {
+    trendMessage = '📈 最近 7 天血壓穩定，請持續保持！';
+  } else if (systolicValues[0] > systolicValues[systolicValues.length - 1]) {
+    trendMessage = '📉 最近 7 天血壓有下降趨勢，持續努力 👍';
+  } else {
+    trendMessage = '⚠️ 最近血壓變化較大，建議檢查作息與飲食';
+  }
 
   const fetchRecords = async () => {
     try {
@@ -122,6 +150,11 @@ function BPRecordPage() {
       setTimeout(() => setShowCongrats(false), 4000);
     } catch (err) {
       console.error('儲存血壓失敗', err);
+      if (err.response?.data?.error) {
+        toast.error(`❌ ${err.response.data.error}`);
+      } else {
+        toast.error("❌ 儲存失敗，請稍後再試");
+      }
     }
   };
 
@@ -337,7 +370,7 @@ function BPRecordPage() {
           <label className="block text-gray-700 text-sm font-medium">備註（可選）</label>
           <textarea
             value={notes}
-            onChange={(e) => setNotes(e.target.value)}
+            onChange={handleNoteChange}
             rows={3}
             className="w-full px-4 py-2 mt-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
             placeholder="例如：頭暈、運動後量測..."
@@ -375,6 +408,23 @@ function BPRecordPage() {
           <Line data={chartData} />
         </div>
       )}
+
+      {/* ✅ 最近 7 天趨勢分析區塊 */}
+      <div className="mt-6 flex justify-center animate-fade-in-up">
+        <div className="w-full max-w-xl bg-white rounded-xl shadow-md border border-gray-200 px-6 py-4">
+          <div className="flex items-center gap-3 mb-2">
+            <span className={`text-2xl ${trendMessage.includes('📈') ? 'text-green-500' 
+                                      : trendMessage.includes('📉') ? 'text-blue-500' 
+                                      : 'text-yellow-500'}`}>
+              {trendMessage.includes('📈') ? '📈' 
+              : trendMessage.includes('📉') ? '📉' 
+              : '⚠️'}
+            </span>
+            <h4 className="text-lg font-bold text-gray-700">最近 7 天血壓趨勢分析</h4>
+          </div>
+          <p className="text-gray-700">{trendMessage.replace(/^[📈📉⚠️]\s/, '')}</p>
+        </div>
+      </div>
 
       {/* 血壓紀錄顯示區塊 */}
       <div className="mt-8">
