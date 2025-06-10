@@ -123,7 +123,7 @@ function AdvicePage() {
 
   return (
     <div className="max-w-xl mx-auto p-6 pt-24">
-      <h2 className="text-2xl font-bold mb-4 text-center">AI 健康建議生成器</h2>
+      <h2 className="text-3xl font-bold mb-4 text-center">AI 健康建議生成器</h2>
 
       <div className="text-right mb-4">
         <button

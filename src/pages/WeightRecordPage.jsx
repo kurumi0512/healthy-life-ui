@@ -13,6 +13,7 @@ import WeightChart from "../components/weight/WeightChart";
 import WeightTrendCard from "../components/weight/WeightTrendCard";
 import WeightRecordList from "../components/weight/WeightRecordList";
 import WeightPandaTip from "../components/weight/WeightPandaTip";
+import ScrollButtons from "../components/common/ScrollButtons";
 
 const WeightRecordPage = () => {
   const [height, setHeight] = useState("");
@@ -29,7 +30,9 @@ const WeightRecordPage = () => {
   const [loadingProfile, setLoadingProfile] = useState(false);
   const [bmiStatus, setBmiStatus] = useState("");
   const [lastRecordDate, setLastRecordDate] = useState(null);
+  const [showBottomBtn, setShowBottomBtn] = useState(true); // ⬇️ 控制是否顯示
   const formRef = useRef(null);
+  const bottomRef = useRef(null);
 
   useEffect(() => {
     fetchRecentRecords();
@@ -264,11 +267,38 @@ const WeightRecordPage = () => {
     weightTrendMessage += `（最高 ${max}kg，最低 ${min}kg）`;
   }
 
+  const [showTopBtn, setShowTopBtn] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowTopBtn(window.scrollY > 300);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrolledY = window.scrollY;
+      const pageHeight = document.documentElement.scrollHeight;
+      const screenHeight = window.innerHeight;
+
+      setShowTopBtn(scrolledY > 300);
+
+      // 如果已經快到底部（剩不到100px），就隱藏滑到底部按鈕
+      setShowBottomBtn(scrolledY + screenHeight < pageHeight - 100);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   return (
+    <>
         <div className="max-w-4xl mx-auto mt-5 p-8 pt-24 bg-white rounded-lg shadow-lg">
             <ToastContainer position="top-right" autoClose={2000} limit={1} />
             <h1 className="text-3xl font-semibold text-center text-gray-800 mb-6">體重紀錄</h1>
+            
             {lastRecordDate && (
                 <div className="text-sm text-gray-500 mb-2 text-center">
                     🕰️ 上次紀錄：{lastRecordDate.replace(/-/g, "/")}
@@ -311,12 +341,14 @@ const WeightRecordPage = () => {
               onEdit={handleEdit}
               onDelete={handleDelete}
             />
-                        
-
             <WeightPandaTip />
-            
+            <div ref={bottomRef} />  
         </div>
+
+        {/* 浮動滑動按鈕共用元件 */}
+        <ScrollButtons bottomRef={bottomRef} />
+      </>
     );
-};
+  };
 
 export default WeightRecordPage;

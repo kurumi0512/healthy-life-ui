@@ -10,6 +10,7 @@ import SugarForm from "../components/sugar/SugarForm";
 import SugarChart from "../components/sugar/SugarChart";
 import SugarTrendCard from "../components/sugar/SugarTrendCard";
 import SugarRecordList from "../components/sugar/SugarRecordList";
+import ScrollButtons from "../components/common/ScrollButtons";
 
 
 
@@ -41,7 +42,11 @@ function SugarLogPage() {
   const [lastRecordDate, setLastRecordDate] = useState(null);
   const [showHealthTip, setShowHealthTip] = useState(false);
   const [analysisTarget, setAnalysisTarget] = useState('fasting');
-  const formRef = useRef(null);
+  const bottomRef = useRef(null); 
+  const formRef = useRef(null); // 👈 這一行是你要加的
+
+
+
 
   useEffect(() => {
     fetchRecords();
@@ -276,20 +281,38 @@ function SugarLogPage() {
 
       sugarTrendMessage += `（平均：${avg.toFixed(1)}，最高：${max}，最低：${min}）`;
     }
+    
+    useEffect(() => {
+      const handleScroll = () => {
+        const scrollY = window.scrollY;
+        const windowHeight = window.innerHeight;
+        const bodyHeight = document.body.offsetHeight;
+
+        // 顯示「回上方」按鈕
+        setShowTopBtn(scrollY > 300);
+
+        // 滑到底部就隱藏「滑到底部」按鈕
+        setShowBottomBtn(scrollY + windowHeight < bodyHeight - 100);
+      };
+
+      window.addEventListener("scroll", handleScroll);
+      return () => window.removeEventListener("scroll", handleScroll);
+    }, []);
+
 
 
 
   return (
-        <div className="max-w-4xl mx-auto mt-5 p-8 pt-24 bg-white rounded-lg shadow-lg">
-          <ToastContainer />
-          <h1 className="text-3xl font-semibold text-center text-gray-800 mb-6">血糖紀錄</h1>
+  <>
+    <div className="max-w-4xl mx-auto mt-5 p-8 pt-24 bg-white rounded-lg shadow-lg">
+      <ToastContainer />
+      <h1 className="text-3xl font-semibold text-center text-gray-800 mb-6">血糖紀錄</h1>
 
-          {lastRecordDate ? (
-      (() => {
+      {/* 最近紀錄提示 */}
+      {lastRecordDate ? (() => {
         const lastDate = new Date(lastRecordDate);
         const today = new Date();
         const diffDays = Math.floor((today - lastDate) / (1000 * 60 * 60 * 24));
-
         return (
           <div className="text-sm mb-4 text-center">
             <p className={diffDays >= 3 ? "text-red-500" : "text-gray-500"}>
@@ -299,19 +322,19 @@ function SugarLogPage() {
             </p>
           </div>
         );
-      })()
-    ) : null}   
+      })() : null}
 
-    <div className="text-right mb-4">
-      <button
-        onClick={loadLastSugarRecord}
-        className="bg-blue-200 hover:bg-blue-300 text-blue-900 font-semibold py-2 px-4 rounded shadow-sm transition"
-      >
-        🔁 複製上一筆紀錄
-      </button>
-    </div>
-      
-      {/* 表單區塊 */}
+      {/* 一鍵填入 */}
+      <div className="text-right mb-4">
+        <button
+          onClick={loadLastSugarRecord}
+          className="bg-blue-200 hover:bg-blue-300 text-blue-900 font-semibold py-2 px-4 rounded shadow-sm transition"
+        >
+          🔁 複製上一筆紀錄
+        </button>
+      </div>
+
+      {/* 表單 */}
       <SugarForm
         ref={formRef}
         fasting={fasting}
@@ -330,25 +353,10 @@ function SugarLogPage() {
         onCancel={clearForm}
       />
 
-      {/* AI 健康提示區塊
-      {warningMessages.length > 0 && (
-        <div className="mt-4 p-4 bg-white border rounded-lg shadow-md">
-          <h4 className="font-semibold text-gray-800 mb-2">🧠 健康狀態建議</h4>
-          <ul className="space-y-1 text-sm leading-relaxed">
-            {warningMessages.map((msg, i) => (
-              <li key={i} className={`${msg.color} flex items-center`}>
-                <span className="mr-2">{msg.message}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )} */}
-
-      {/* 圖表區 */}
+      {/* 圖表 */}
       <SugarChart chartData={chartData} />
 
-      <div className="mb-6"></div>
-
+      {/* 趨勢分析 */}
       {records.length >= 7 && (
         <SugarTrendCard
           sugarTrendMessage={sugarTrendMessage}
@@ -356,8 +364,6 @@ function SugarLogPage() {
           setAnalysisTarget={setAnalysisTarget}
         />
       )}
-
-      <div className="mb-6"></div>
 
       {/* 紀錄列表 */}
       <SugarRecordList
@@ -368,36 +374,17 @@ function SugarLogPage() {
         setShowAll={setShowAll}
       />
 
-
-      {/* {showCongrats && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none animate-fade-in-up">
-          <div className="w-60 h-60 bg-white rounded-full shadow-xl p-4 flex flex-col items-center justify-center">
-            <img src="/inu1.png" alt="鼓勵圖" className="w-32 h-32 object-contain" />
-            <p className="text-lg font-bold text-green-600 mt-2 text-center">你很棒❣️持續努力💪</p>
-          </div>
-        </div>
-      )} */}
-
-     {showHealthTip && warningMessages.length > 0 && (
-      <div className="fixed bottom-6 right-6 bg-white shadow-lg rounded-lg p-4 border-l-4 border-yellow-400 w-80 z-50">
-        <div className="flex justify-between items-center">
-          <h4 className="text-sm font-semibold text-gray-600">📢 健康提醒</h4>
-          <button onClick={() => setShowHealthTip(false)} className="text-gray-500 hover:text-gray-700">✖</button>
-        </div>
-        <ul className="mt-1 text-sm text-gray-800 space-y-1">
-          {warningMessages.map((msg, i) => (
-            <li key={i} className="text-gray-800">{msg.message}</li>
-          ))}
-        </ul>
-      </div>
-    )}
-
       {/* 插圖 */}
       <div className="mt-8 text-center">
         <img src="/fight.png" alt="血糖紀錄" className="mx-auto w-80 rounded-lg" />
         <p className="mt-4 text-gray-600">關注血糖變化，邁向更健康的生活！</p>
       </div>
+
+      {/* 滑到底部目標 */}
+      <div ref={bottomRef} />
     </div>
+      <ScrollButtons bottomRef={bottomRef} />
+    </>
   );
 }
 

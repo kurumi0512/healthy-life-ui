@@ -9,8 +9,8 @@ function Navbar() {
 
   const navItemStyle = ({ isActive }) =>
     isActive
-      ? 'text-blue-600 font-bold border-b-2 border-blue-600'
-      : 'text-gray-600 hover:text-blue-600';
+      ? 'text-blue-500 font-bold border-b-2 border-blue-500 text-base'
+      : 'text-gray-600 hover:text-gray-600';
 
   const handleLogout = async () => {
     await logout();     // 等待後端完成登出、session 清除
@@ -22,7 +22,7 @@ function Navbar() {
   };
 
   return (
-    <nav className="fixed top-0 w-full z-50 bg-white shadow p-4">
+    <nav className="fixed top-0 w-full z-50 bg-white shadow p-4 font-serif">
       <div className="container mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
         {/* 左側 LOGO 或標題 */}
         <div className="flex justify-between w-full md:w-auto">

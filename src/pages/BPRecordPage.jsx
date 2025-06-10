@@ -10,6 +10,7 @@ import BPForm from '../components/bp/BPForm';
 import BPChart from '../components/bp/BPChart';
 import BPTrendCard from '../components/bp/BPTrendCard';
 import BPRecordList from '../components/bp/BPRecordList';
+import ScrollButtons from "../components/common/ScrollButtons";
 
 import {
   Chart as ChartJS,
@@ -38,6 +39,7 @@ function BPRecordPage() {
   const [showImmediateTip, setShowImmediateTip] = useState(false);
   const [bpStatus, setBpStatus] = useState({ message: '', color: '' });
   const formRef = useRef(null);
+  const bottomRef = useRef(null);
 
   useEffect(() => {
     const today = new Date().toISOString().split('T')[0];
@@ -388,6 +390,9 @@ function BPRecordPage() {
           <p className={`mt-1 text-sm ${bpStatus.color}`}>{bpStatus.message}</p>
         </div>
       )}
+      {/* 浮動滑動按鈕共用元件 */}
+      <div ref={bottomRef} />
+      <ScrollButtons bottomRef={bottomRef} />
     </>
   );
 }

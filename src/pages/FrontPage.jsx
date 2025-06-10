@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import HealthSidebar from './HealthSidebar';
+import axios from 'axios';
 
 function FrontPage() {
   const { user, logout } = useAuth();
@@ -22,6 +23,7 @@ function FrontPage() {
   ];
 
   const [randomNews, setRandomNews] = useState([]);
+  const [recommendation, setRecommendation] = useState(null);
 
   useEffect(() => {
     const shuffled = [...allNews].sort(() => Math.random() - 0.5);
@@ -29,33 +31,56 @@ function FrontPage() {
     setRandomNews(selected);
   }, []);
 
+  useEffect(() => {
+  const shuffled = [...allNews].sort(() => Math.random() - 0.5);
+  const selected = shuffled.slice(0, 5);
+  setRandomNews(selected);
+
+  // 🔍 載入 AI 推薦新聞
+  axios.get('http://localhost:8082/rest/health/news/recommend', { withCredentials: true })
+    .then(res => setRecommendation(res.data))
+    .catch(err => console.error('載入推薦新聞失敗', err));
+}, []);
+
   return (
-    
-    <div className="flex flex-col lg:flex-row max-w-6xl mx-auto p-6 pt-24 mt-8 gap-6">
+  <div className="max-w-6xl mx-auto px-6 pt-24">
+    {/* 上方標題區＋登入狀態 */}
+    <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10">
+      <h1 className="text-3xl font-bold text-blue-900">
+        《體重與健康 AI 追蹤系統》
+      </h1>
+
+      {user ? (
+        <div className="mt-4 md:mt-0 text-right">
+          <p className="text-green-700">👋 嗨，{user.username}！歡迎回來！</p>
+        </div>
+      ) : (
+        <p className="mt-4 md:mt-0 text-gray-500 text-right">
+          尚未登入，請先登入以使用完整功能
+        </p>
+      )}
+    </div>
+
+    {/* 主內容區：左右區塊 */}
+    <div className="flex flex-col lg:flex-row gap-12">
       {/* 左邊：新聞清單 */}
       <div className="flex-1 bg-white rounded-lg shadow-md p-6">
-        <h1 className="text-3xl font-bold text-blue-700 mb-4">Health News</h1>
-        
-         {/* ✅ 登入狀態區塊 */}
-              {user ? (
-      <div className="mb-4">
-        <p className="text-green-700">👋 嗨，{user.username}！歡迎回來</p>
-        <button
-          onClick={logout}
-          className="mt-2 bg-red-600 text-white py-1 px-3 rounded hover:bg-red-700"
-        >
-          登出
-        </button>
-      </div>
-    ) : (
-      <p className="text-gray-500 mb-4">尚未登入，請先登入以使用完整功能</p>
-    )}
+        {recommendation && (
+          <div className="bg-yellow-100 border-l-4 border-yellow-400 p-4 rounded mb-10 shadow">
+            <h2 className="font-bold text-yellow-800 text-lg mb-1">今日 AI 推薦文章</h2>
+            <a
+              href={recommendation.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-700 font-semibold hover:underline"
+            >
+              🔗 {recommendation.title}
+            </a>
+            <p className="text-sm text-gray-600 mt-1">💡 {recommendation.reason}</p>
+          </div>
+        )}
 
-
-
-        <h2 className="text-xl font-semibold text-gray-700 mb-2">
-          對哪些健康話題有興趣呢?
-        </h2>
+        <h2 className="text-xl font-semibold text-gray-700 mb-2">📰 健康新聞與知識報</h2>
         <ul className="list-disc pl-5 space-y-2">
           {randomNews.map((news, index) => (
             <li key={index}>
@@ -63,7 +88,7 @@ function FrontPage() {
                 href={news.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-blue-600 hover:underline hover:text-blue-800"
+                className="text-gray-600 hover:underline hover:text-blue-800"
               >
                 {news.title}
               </a>
@@ -77,7 +102,8 @@ function FrontPage() {
         <HealthSidebar />
       </div>
     </div>
-  );
-}
+  </div>
+);
 
+}
 export default FrontPage;

@@ -3,6 +3,9 @@ module.exports = {
   content: ["./src/**/*.{js,jsx,ts,tsx}"],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['"Noto Sans JP"', 'Microsoft JhengHei', 'sans-serif'],
+      },
       keyframes: {
         wave: {
           '0%, 100%': { transform: 'rotate(0deg)' },
