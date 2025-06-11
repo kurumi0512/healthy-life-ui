@@ -17,6 +17,7 @@ import VerifySuccess from './pages/VerifySuccess';
 import VerifyFail from './pages/VerifyFail';
 import AdminDashboard from './pages/AdminDashboard'; // ✅ 新增管理者後台頁面
 import AdminUsersPage from './pages/AdminUsersPage';
+import ChatbotFloatingButton from './components/ChatbotFloatingButton'; 
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -78,6 +79,10 @@ function App() {
         {/* 其他路徑導回首頁 */}
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
+
+      {/* ✅ 加這一行，讓聊天機器人浮動出現 */}
+      <ChatbotFloatingButton />
+
     </>
   );
 }

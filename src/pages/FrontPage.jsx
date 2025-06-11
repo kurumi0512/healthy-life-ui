@@ -43,67 +43,69 @@ function FrontPage() {
 }, []);
 
   return (
-  <div className="max-w-6xl mx-auto px-6 pt-24">
-    {/* 上方標題區＋登入狀態 */}
-    <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10">
-      <h1 className="text-3xl font-bold text-blue-900">
-        《體重與健康 AI 追蹤系統》
-      </h1>
-
-      {user ? (
-        <div className="mt-4 md:mt-0 text-right">
-          <p className="text-green-700">👋 嗨，{user.username}！歡迎回來！</p>
+    <div className="max-w-6xl mx-auto px-6 pt-24">
+      {/* 整個內容包一層，含標題＋主內容 */}
+      <div className="space-y-10">
+        {/* 上方標題區＋登入狀態 */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
+          <h1 className="text-3xl font-bold text-blue-900">
+            《體重與健康 AI 追蹤系統》
+          </h1>
+          {user ? (
+            <div className="mt-4 md:mt-0 self-end pr-2">
+              <p className="text-green-700">👋 嗨，{user.username}！歡迎回來！</p>
+            </div>
+          ) : (
+            <p className="mt-4 md:mt-0 text-gray-500 text-right">
+              尚未登入，請先登入以使用完整功能
+            </p>
+          )}
         </div>
-      ) : (
-        <p className="mt-4 md:mt-0 text-gray-500 text-right">
-          尚未登入，請先登入以使用完整功能
-        </p>
-      )}
-    </div>
 
-    {/* 主內容區：左右區塊 */}
-    <div className="flex flex-col lg:flex-row gap-12">
-      {/* 左邊：新聞清單 */}
-      <div className="flex-1 bg-white rounded-lg shadow-md p-6">
-        {recommendation && (
-          <div className="bg-yellow-100 border-l-4 border-yellow-400 p-4 rounded mb-10 shadow">
-            <h2 className="font-bold text-yellow-800 text-lg mb-1">今日 AI 推薦文章</h2>
-            <a
-              href={recommendation.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-700 font-semibold hover:underline"
-            >
-              🔗 {recommendation.title}
-            </a>
-            <p className="text-sm text-gray-600 mt-1">💡 {recommendation.reason}</p>
+        {/* 主內容區：左右區塊 */}
+        <div className="flex flex-col lg:flex-row gap-12">
+          {/* 左邊：新聞清單 */}
+          <div className="flex-1 bg-white rounded-lg shadow-md p-6">
+            {recommendation && (
+              <div className="bg-yellow-100 border-l-4 border-yellow-400 p-4 rounded mb-10 shadow">
+                <h2 className="font-bold text-yellow-800 text-lg mb-1">今日 AI 推薦文章</h2>
+                <a
+                  href={recommendation.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-700 font-semibold hover:underline"
+                >
+                  🔗 {recommendation.title}
+                </a>
+                <p className="text-sm text-gray-600 mt-1">💡 {recommendation.reason}</p>
+              </div>
+            )}
+
+            <h2 className="text-xl font-semibold text-gray-700 mb-2">📰 健康新聞與知識報</h2>
+            <ul className="list-disc pl-5 space-y-2">
+              {randomNews.map((news, index) => (
+                <li key={index}>
+                  <a
+                    href={news.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-gray-600 hover:underline hover:text-blue-800"
+                  >
+                    {news.title}
+                  </a>
+                </li>
+              ))}
+            </ul>
           </div>
-        )}
 
-        <h2 className="text-xl font-semibold text-gray-700 mb-2">📰 健康新聞與知識報</h2>
-        <ul className="list-disc pl-5 space-y-2">
-          {randomNews.map((news, index) => (
-            <li key={index}>
-              <a
-                href={news.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-600 hover:underline hover:text-blue-800"
-              >
-                {news.title}
-              </a>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      {/* 右邊健康小卡片 */}
-      <div className="w-full lg:w-[400px]">
-        <HealthSidebar />
+          {/* 右邊健康小卡片 */}
+          <div className="w-full lg:w-[400px]">
+            <HealthSidebar />
+          </div>
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
 
 }
 export default FrontPage;
