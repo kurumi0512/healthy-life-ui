@@ -17,7 +17,8 @@ import VerifySuccess from './pages/VerifySuccess';
 import VerifyFail from './pages/VerifyFail';
 import AdminDashboard from './pages/AdminDashboard'; // ✅ 新增管理者後台頁面
 import AdminUsersPage from './pages/AdminUsersPage';
-import ChatbotFloatingButton from './components/ChatbotFloatingButton'; 
+import ChatbotFloatingButton from './components/ChatbotFloatingButton';
+import ProteinAdvicePage from './pages/ProteinAdvicePage'; 
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -71,6 +72,7 @@ function App() {
         <Route path="/blood-pressure" element={<ProtectedRoute><BPRecordPage /></ProtectedRoute>} />
         <Route path="/blood-sugar" element={<ProtectedRoute><SugarLogPage /></ProtectedRoute>} />
         <Route path="/advice" element={<ProtectedRoute><AdvicePage /></ProtectedRoute>} />
+        <Route path="/protein-advice" element={<ProtectedRoute><ProteinAdvicePage /></ProtectedRoute>} />
 
         {/* 管理員專用頁面 */}
         <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />

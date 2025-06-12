@@ -55,6 +55,7 @@ function Navbar() {
               <NavLink to="/blood-pressure" className={navItemStyle}>血壓紀錄</NavLink>
               <NavLink to="/blood-sugar" className={navItemStyle}>血糖紀錄</NavLink>
               <NavLink to="/advice" className={navItemStyle}>健康建議</NavLink>
+              <NavLink to="/protein-advice" className={navItemStyle}>蛋白質建議</NavLink>
             </>
           )}
           {user?.role === 'ADMIN' && (
@@ -112,6 +113,7 @@ function Navbar() {
             <NavLink to="/blood-pressure" className={navItemStyle} onClick={handleLinkClick}>血壓紀錄</NavLink>
             <NavLink to="/blood-sugar" className={navItemStyle} onClick={handleLinkClick}>血糖紀錄</NavLink>
             <NavLink to="/advice" className={navItemStyle} onClick={handleLinkClick}>健康建議</NavLink>
+            <NavLink to="/protein-advice" className={navItemStyle} onClick={handleLinkClick}>蛋白質建議</NavLink>
           </>
         )}
 

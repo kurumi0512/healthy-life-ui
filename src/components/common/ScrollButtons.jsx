@@ -23,7 +23,7 @@ function ScrollButtons({ bottomRef }) {
       {showTopBtn && (
         <button
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-          className="fixed bottom-6 right-6 flex items-center gap-2 bg-white-600 hover:bg-blue-400 text-black font-bold px-5 py-3 rounded-full shadow-xl animate-[bounce_2s_infinite] z-50"
+          className="fixed bottom-24 right-6 flex items-center gap-2 bg-white-600 hover:bg-blue-400 text-black font-bold px-5 py-3 rounded-full shadow-xl animate-[bounce_2s_infinite] z-50"
           title="回到最上方"
         >
           🡹 TOP

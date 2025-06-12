@@ -360,6 +360,11 @@ function BPRecordPage() {
         onDelete={handleDelete}
         getBPStatusFromValues={getBPStatusFromValues}
       />
+      {/* ✅ 小雞插圖直接放進來這裡 */}
+      <div className="mt-8 text-center">
+        <img src="/cat.png" alt="血壓紀錄" className="mx-auto w-80 rounded-lg" />
+        <p className="mt-4 text-gray-600">保持健康的血壓，關注每一天！</p>
+      </div>
     </div>
 
     {/* 🎉 成功紀錄彈窗 */}
@@ -374,15 +379,11 @@ function BPRecordPage() {
       </div>
     )}
 
-    {/* 插圖區塊 */}
-    <div className="mt-8 text-center">
-      <img src="/cat.png" alt="血壓紀錄" className="mx-auto w-80 rounded-lg" />
-      <p className="mt-4 text-gray-600">保持健康的血壓，關注每一天！</p>
-    </div>
+    
 
     {/* ✅ 健康提醒浮動區塊 */}
       {showHealthTip && bpStatus.message && bpStatus.color !== 'text-green-400' && (
-        <div className="fixed bottom-6 right-6 bg-white shadow-lg rounded-lg p-4 border-l-4 border-yellow-400 w-80 z-50 animate-fade-in-up">
+        <div className="fixed bottom-38 right-6 bg-white shadow-lg rounded-lg p-4 border-l-4 border-yellow-400 w-80 z-50 animate-fade-in-up">
           <div className="flex justify-between items-center">
             <h4 className="text-sm font-semibold text-yellow-600">📢 健康提醒</h4>
             <button onClick={() => setShowHealthTip(false)} className="text-gray-500 hover:text-gray-700">✖</button>
