@@ -106,7 +106,7 @@ function BPRecordPage() {
     const record = {
       systolic: sys,
       diastolic: dia,
-      recordDate: recordDate || new Date().toISOString().split('T')[0],
+      recordDate: recordDate?.trim() !== '' ? recordDate : null, // ✅ 保險做法
       notes: notes.trim() === "" ? null : notes.trim()
     };
 
@@ -214,7 +214,9 @@ function BPRecordPage() {
     });
   };
   const getBPStatusFromValues = (sys, dia) => {
-    if (!sys || !dia) return { message: '', color: '' };
+    if (sys == null || dia == null || isNaN(sys) || isNaN(dia)) {
+      return { message: '', color: '' };
+    }
 
     if (sys > 140 || dia > 90) {
       return {
@@ -224,12 +226,12 @@ function BPRecordPage() {
     } else if (sys >= 120 || dia >= 80) {
       return {
         message: '⚠️ 血壓略高，請持續注意飲食與壓力',
-        color: 'text-yellow-500'
+        color: 'text-gray-500'
       };
     } else if (sys < 90 || dia < 60) {
       return {
         message: '🥴 血壓偏低，請補充水分並注意身體反應',
-        color: 'text-orange-500'
+        color: 'text-gray-500'
       };
     } else {
       return {
@@ -238,6 +240,7 @@ function BPRecordPage() {
       };
     }
   };
+
 
   const status = getBPStatusFromValues(systolic, diastolic);
 
