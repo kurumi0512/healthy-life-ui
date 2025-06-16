@@ -19,6 +19,9 @@ import AdminDashboard from './pages/AdminDashboard'; // ✅ 新增管理者後�
 import AdminUsersPage from './pages/AdminUsersPage';
 import ChatbotFloatingButton from './components/ChatbotFloatingButton';
 import ProteinAdvicePage from './pages/ProteinAdvicePage'; 
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
+import VerifyCodePage from './pages/VerifyCodePage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -65,6 +68,9 @@ function App() {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/verify-success" element={<VerifySuccess />} />
         <Route path="/verify-fail" element={<VerifyFail />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/verify-code" element={<VerifyCodePage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
 
         {/* 需登入的頁面 */}
         <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />

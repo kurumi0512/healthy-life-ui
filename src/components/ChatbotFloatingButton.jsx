@@ -117,7 +117,7 @@ function ChatbotFloatingButton() {
   return (
     <div className="fixed bottom-6 right-6 z-50">
       <button
-        onClick={() => setShowChat(true)}
+        onClick={() => setShowChat(prev => !prev)}
         className="bg-blue-500 text-white rounded-full p-4 shadow-lg hover:bg-blue-700"
       >
         💬

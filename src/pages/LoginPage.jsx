@@ -113,7 +113,12 @@ function LoginPage() {
         </button>
 
         <div className="flex justify-between text-sm">
-          <a href="#" className="text-blue-500 hover:underline">忘記密碼？</a>
+          <span
+            onClick={() => navigate('/forgot-password')}
+            className="text-blue-500 hover:underline cursor-pointer"
+          >
+            忘記密碼？
+          </span>
           <span
             onClick={() => navigate('/register')}
             className="text-blue-500 hover:underline cursor-pointer"
