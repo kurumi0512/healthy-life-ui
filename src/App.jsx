@@ -41,7 +41,7 @@ function AdminRoute({ children }) {
 }
 
 function App() {
-  const { loading } = useAuth();
+  const { user, loading } = useAuth();
 
   if (loading) return <div>載入中...</div>;
 
@@ -89,7 +89,7 @@ function App() {
       </Routes>
 
       {/* ✅ 加這一行，讓聊天機器人浮動出現 */}
-      <ChatbotFloatingButton />
+      {user && <ChatbotFloatingButton />}
 
     </>
   );

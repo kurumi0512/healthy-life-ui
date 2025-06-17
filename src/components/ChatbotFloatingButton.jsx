@@ -49,7 +49,17 @@ function ChatbotFloatingButton() {
 
     eventSource.onmessage = (event) => {
       if (event.data === '[DONE]') {
-        setMessages((prev) => [...prev, { role: 'bot', content: aiMessage }]);
+        // ✅ 就在這裡！
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: 'bot',
+            content: aiMessage
+              .split('\n')
+              .map(line => line.replace(/^[\u3000\s]+/, '')) // ✅ 移除每行開頭的「全形空白或半形空白」
+              .join('\n')
+          }
+        ]);
         setIsLoading(false);
         eventSource.close();
       } else {
