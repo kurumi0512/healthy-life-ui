@@ -2,6 +2,14 @@ import React, { useState, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import { EventSourcePolyfill } from 'event-source-polyfill';
 import { toast } from 'react-toastify';
+import ScrollButtons from "../components/common/ScrollButtons";
+import { useRef } from "react";
+
+const fixMealBreaks = (text) =>
+  text
+    .replace(/###早餐/g, '\n\n### 早餐')
+    .replace(/###午餐/g, '\n\n### 午餐')
+    .replace(/###晚餐/g, '\n\n### 晚餐');
 
 function AdvicePage() {
   const [height, setHeight] = useState("");
@@ -15,6 +23,7 @@ function AdvicePage() {
 
   const [previousAdvice, setPreviousAdvice] = useState("");
   const [previousInput, setPreviousInput] = useState("");
+  const bottomRef = useRef(null);
 
   const fetchLatestAdvice = () => {
     fetch("http://localhost:8082/rest/health/healthAI/history/latest", {
@@ -110,7 +119,7 @@ function AdvicePage() {
         return;
       }
 
-      const formattedData = data.replace(/•/g, '\n\n•').replace(/\n/g, '\n\n');
+      const formattedData = fixMealBreaks(data.replace(/•/g, '\n\n•').replace(/\n/g, '\n\n'));
       setAdvice(prev => prev + formattedData);
     };
 
@@ -229,7 +238,10 @@ function AdvicePage() {
       ) : !loading && (
         <p className="text-gray-400 mt-6 text-center">尚無上一筆建議，請先產生一筆建議</p>
       )}
+      <div ref={bottomRef}></div>
+      <ScrollButtons bottomRef={bottomRef} />
     </div>
+    
   );
 }
 

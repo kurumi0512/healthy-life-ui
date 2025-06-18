@@ -1,7 +1,9 @@
-// ✅ ChatbotFloatingButton.jsx（串流版＋多 prompt＋優化版＋可縮放＋清除訊息）
 import React, { useState, useRef, useEffect } from 'react';
+import { useAuth } from '../auth/AuthContext'; // 導入 user 狀態
 
 function ChatbotFloatingButton() {
+  const { user } = useAuth();
+  console.log("✅ user", user);
   const [showChat, setShowChat] = useState(false);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
@@ -19,6 +21,7 @@ function ChatbotFloatingButton() {
   }, [messages]);
 
   useEffect(() => {
+    if (!user) return; // 未登入不觸發預設 prompt
     if (mode === 'goal') {
       setInput('');
     } else if (mode === 'diet') {
@@ -28,15 +31,36 @@ function ChatbotFloatingButton() {
     }
   }, [mode]);
 
+  useEffect(() => {
+    console.log("✅ user", user);
+    const { height, weight, age } = getUserParams();
+    console.log("✅ 傳送到 AI 的參數：", { height, weight, age });
+  }, [mode]);
+
+  const getUserParams = () => {
+    return {
+      height: user?.height || '165',
+      weight: user?.weight || '60',
+      age: user?.age || '30'
+    };
+  };
+
   const autoSendMessage = (msg) => {
+    if (!user) {
+      alert('⚠️ 請先登入才能使用健康建議功能');
+      return;
+    }
+
     const newUserMessage = { role: 'user', content: msg };
     setMessages((prev) => [...prev, newUserMessage]);
     setIsLoading(true);
 
+    const { height, weight, age } = getUserParams();
+
     const queryParams = new URLSearchParams({
-      height: '165',
-      weight: '60',
-      age: '30',
+      height,
+      weight,
+      age,
       goal: msg,
       mode: mode
     }).toString();
@@ -49,14 +73,13 @@ function ChatbotFloatingButton() {
 
     eventSource.onmessage = (event) => {
       if (event.data === '[DONE]') {
-        // ✅ 就在這裡！
         setMessages((prev) => [
           ...prev,
           {
             role: 'bot',
             content: aiMessage
               .split('\n')
-              .map(line => line.replace(/^[\u3000\s]+/, '')) // ✅ 移除每行開頭的「全形空白或半形空白」
+              .map(line => line.replace(/^[\u3000\s]+/, ''))
               .join('\n')
           }
         ]);
@@ -78,6 +101,11 @@ function ChatbotFloatingButton() {
   };
 
   const sendMessage = (customInput) => {
+    if (!user) {
+      alert('⚠️ 請先登入才能使用健康建議功能');
+      return;
+    }
+
     const message = customInput || input;
     if (!message.trim()) return;
     const newUserMessage = { role: 'user', content: message };
@@ -85,10 +113,12 @@ function ChatbotFloatingButton() {
     setInput('');
     setIsLoading(true);
 
+    const { height, weight, age } = getUserParams();
+
     const queryParams = new URLSearchParams({
-      height: '165',
-      weight: '60',
-      age: '30',
+      height,
+      weight,
+      age,
       goal: message,
       mode: mode
     }).toString();

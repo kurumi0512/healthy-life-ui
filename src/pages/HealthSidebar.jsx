@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../auth/AuthContext';
 
 function HealthTipsCard({ icon, title, tips }) {
   const today = new Date().getDate();
@@ -17,6 +18,15 @@ function HealthTipsCard({ icon, title, tips }) {
 
 function HealthSidebar() {
   const navigate = useNavigate();
+  const { user } = useAuth(); // 加這行來取得登入狀態
+
+  const handleStartClick = () => {
+    if (user) {
+      navigate('/weight'); // 有登入去記錄頁
+    } else {
+      navigate('/login'); // 沒登入去登入頁
+    }
+  };
 
   return (
     <div className="w-full flex flex-col items-center space-y-4">
@@ -25,7 +35,7 @@ function HealthSidebar() {
         src="/record.png"
         alt="健康主題圖片"
         className="rounded-lg shadow-md w-3/4 cursor-pointer"
-        onClick={() => navigate('/login')}
+        onClick={handleStartClick}
       />
 
       {/* 健康小知識區塊 */}
