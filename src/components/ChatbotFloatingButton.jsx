@@ -39,15 +39,15 @@ function ChatbotFloatingButton() {
 
   const getUserParams = () => {
     return {
-      height: user?.height || '165',
+      height: user?.height || '167',
       weight: user?.weight || '60',
-      age: user?.age || '30'
+      age: user?.age || '22'
     };
   };
 
   const autoSendMessage = (msg) => {
     if (!user) {
-      alert('請先登入才能使用健康建議功能');
+      alert('⚠️ 請先登入才能使用健康建議功能');
       return;
     }
 
@@ -92,7 +92,7 @@ function ChatbotFloatingButton() {
 
     eventSource.onerror = (err) => {
       console.error('串流錯誤', err);
-      setMessages((prev) => [...prev, { role: 'bot', content: 'AI 回覆失敗，請稍後再試' }]);
+      setMessages((prev) => [...prev, { role: 'bot', content: '⚠️ AI 回覆失敗，請稍後再試' }]);
       setIsLoading(false);
       eventSource.close();
     };
@@ -102,7 +102,7 @@ function ChatbotFloatingButton() {
 
   const sendMessage = (customInput) => {
     if (!user) {
-      alert('請先登入才能使用健康建議功能');
+      alert('⚠️ 請先登入才能使用健康建議功能');
       return;
     }
 
@@ -141,7 +141,7 @@ function ChatbotFloatingButton() {
 
     eventSource.onerror = (err) => {
       console.error('串流錯誤', err);
-      setMessages((prev) => [...prev, { role: 'bot', content: 'AI 回覆失敗，請稍後再試' }]);
+      setMessages((prev) => [...prev, { role: 'bot', content: '⚠️ AI 回覆失敗，請稍後再試' }]);
       setIsLoading(false);
       eventSource.close();
     };
