@@ -210,7 +210,7 @@ function AdvicePage() {
       )}
 
       {!loading && advice && (
-        <p className="text-green-600 mt-2">AI 建議已完成</p>
+        <p className="text-green-600 mt-2">✔ AI 建議已完成</p>
       )}
 
       {advice && (
