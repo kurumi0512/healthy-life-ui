@@ -53,13 +53,13 @@ function RegisterPage() {
   const handleSubmit = async (e) => {
   e.preventDefault();
 
-  if (isSubmitting) return;         // ⛔ 避免重複送出
-  setIsSubmitting(true);            // 🔒 鎖定按鈕
+  if (isSubmitting) return;         // 避免重複送出
+  setIsSubmitting(true);            // 鎖定按鈕
 
   const foundErrors = validate();
   if (Object.keys(foundErrors).length > 0) {
     setErrors(foundErrors);
-    setIsSubmitting(false);         // ❗驗證失敗也要解鎖
+    setIsSubmitting(false);         // 驗證失敗也要解鎖
     return;
   }
 
@@ -86,7 +86,7 @@ function RegisterPage() {
     });
   }
 
-  setIsSubmitting(false); // ✅ 最後一定要解除鎖定
+  setIsSubmitting(false); // 最後解除鎖定
 };
 
   return (

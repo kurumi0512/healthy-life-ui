@@ -3,7 +3,7 @@ import { useAuth } from '../auth/AuthContext'; // 導入 user 狀態
 
 function ChatbotFloatingButton() {
   const { user } = useAuth();
-  console.log("✅ user", user);
+  console.log("user", user);
   const [showChat, setShowChat] = useState(false);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
@@ -32,9 +32,9 @@ function ChatbotFloatingButton() {
   }, [mode]);
 
   useEffect(() => {
-    console.log("✅ user", user);
+    console.log("user", user);
     const { height, weight, age } = getUserParams();
-    console.log("✅ 傳送到 AI 的參數：", { height, weight, age });
+    console.log("傳送到 AI 的參數：", { height, weight, age });
   }, [mode]);
 
   const getUserParams = () => {
@@ -47,7 +47,7 @@ function ChatbotFloatingButton() {
 
   const autoSendMessage = (msg) => {
     if (!user) {
-      alert('⚠️ 請先登入才能使用健康建議功能');
+      alert('請先登入才能使用健康建議功能');
       return;
     }
 
@@ -92,7 +92,7 @@ function ChatbotFloatingButton() {
 
     eventSource.onerror = (err) => {
       console.error('串流錯誤', err);
-      setMessages((prev) => [...prev, { role: 'bot', content: '⚠️ AI 回覆失敗，請稍後再試' }]);
+      setMessages((prev) => [...prev, { role: 'bot', content: 'AI 回覆失敗，請稍後再試' }]);
       setIsLoading(false);
       eventSource.close();
     };
@@ -102,7 +102,7 @@ function ChatbotFloatingButton() {
 
   const sendMessage = (customInput) => {
     if (!user) {
-      alert('⚠️ 請先登入才能使用健康建議功能');
+      alert('請先登入才能使用健康建議功能');
       return;
     }
 
@@ -141,7 +141,7 @@ function ChatbotFloatingButton() {
 
     eventSource.onerror = (err) => {
       console.error('串流錯誤', err);
-      setMessages((prev) => [...prev, { role: 'bot', content: '⚠️ AI 回覆失敗，請稍後再試' }]);
+      setMessages((prev) => [...prev, { role: 'bot', content: 'AI 回覆失敗，請稍後再試' }]);
       setIsLoading(false);
       eventSource.close();
     };

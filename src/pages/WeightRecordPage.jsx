@@ -30,7 +30,7 @@ const WeightRecordPage = () => {
   const [loadingProfile, setLoadingProfile] = useState(false);
   const [bmiStatus, setBmiStatus] = useState("");
   const [lastRecordDate, setLastRecordDate] = useState(null);
-  const [showBottomBtn, setShowBottomBtn] = useState(true); // ⬇️ 控制是否顯示
+  const [showBottomBtn, setShowBottomBtn] = useState(true); // 控制是否顯示
   const formRef = useRef(null);
   const bottomRef = useRef(null);
 
@@ -71,7 +71,7 @@ const WeightRecordPage = () => {
         setLastRecordDate(latest.recordDate);
       }
     } catch (err) {
-      console.error("❌ 無法取得最新體重紀錄", err);
+      console.error("無法取得最新體重紀錄", err);
     }
   };
 
@@ -80,7 +80,7 @@ const WeightRecordPage = () => {
     try {
       setLoadingProfile(true);
       const res = await axios.get("http://localhost:8082/rest/profile", { withCredentials: true });
-      console.log("👀 後端回傳的 profile 結果：", res.data);
+      console.log("後端回傳的 profile 結果：", res.data);
       const data = res.data;
       const weightRes = await axios.get("http://localhost:8082/rest/health/weight/latest", { withCredentials: true });
       const latestWeight = weightRes.data?.data?.weight;

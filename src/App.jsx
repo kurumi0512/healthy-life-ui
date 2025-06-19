@@ -15,7 +15,7 @@ import AdvicePage from './pages/AdvicePage';
 import RegisterPage from './pages/RegisterPage';
 import VerifySuccess from './pages/VerifySuccess';
 import VerifyFail from './pages/VerifyFail';
-import AdminDashboard from './pages/AdminDashboard'; // ✅ 新增管理者後台頁面
+import AdminDashboard from './pages/AdminDashboard'; 
 import AdminUsersPage from './pages/AdminUsersPage';
 import ChatbotFloatingButton from './components/ChatbotFloatingButton';
 import ProteinAdvicePage from './pages/ProteinAdvicePage'; 
@@ -48,8 +48,6 @@ function App() {
   return (
     <>
       <Navbar />
-
-      {/* ✅ ToastContainer 應該放在 Routes 外層 */}
       <ToastContainer
         limit={1}
         position="top-right"
@@ -88,7 +86,7 @@ function App() {
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
 
-      {/* ✅ 加這一行，讓聊天機器人浮動出現 */}
+      {/* 聊天機器人浮動出現 */}
       {user && <ChatbotFloatingButton />}
 
     </>

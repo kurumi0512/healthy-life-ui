@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { CheckCircle } from 'lucide-react'; // ✅ 可選，用於顯示漂亮圖示
+import { CheckCircle } from 'lucide-react'; 
 
 function VerifySuccess() {
   const navigate = useNavigate();

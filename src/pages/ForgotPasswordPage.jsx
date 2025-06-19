@@ -24,8 +24,8 @@ function ForgotPasswordPage() {
   };
 
   const handleSubmit = (e) => {
-    e.preventDefault(); // ✅ 阻止表單預設重新整理
-    handleSend();       // ✅ 呼叫寄送函式
+    e.preventDefault(); // 阻止表單預設重新整理
+    handleSend();       // 呼叫寄送函式
   };
 
   return (

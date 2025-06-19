@@ -31,7 +31,7 @@ function AdvicePage() {
     })
       .then(res => res.json())
       .then(res => {
-        console.log("🔍 取得歷史建議回應：", res);
+        console.log("取得歷史建議回應：", res);
         if (res.data) {
           setPreviousAdvice(res.data.generatedAdvice);
           setPreviousInput(res.data.inputContext || "");
@@ -39,13 +39,13 @@ function AdvicePage() {
           setPreviousAdvice("");
           setPreviousInput("");
         }
-        setAdviceLoaded(true); // ✅ 成功時設定為已載入
+        setAdviceLoaded(true); // 成功時設定為已載入
       })
       .catch(err => {
         console.error("載入歷史建議失敗", err);
         setPreviousAdvice("");
         setPreviousInput("");
-        setAdviceLoaded(true); // ✅ 即使失敗也設為已載入，避免無限 loading
+        setAdviceLoaded(true); // 即使失敗也設為已載入，避免無限 loading
       });
   };
 
@@ -210,7 +210,7 @@ function AdvicePage() {
       )}
 
       {!loading && advice && (
-        <p className="text-green-600 mt-2">✅ AI 建議已完成</p>
+        <p className="text-green-600 mt-2">AI 建議已完成</p>
       )}
 
       {advice && (

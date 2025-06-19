@@ -18,7 +18,7 @@ function HealthTipsCard({ icon, title, tips }) {
 
 function HealthSidebar() {
   const navigate = useNavigate();
-  const { user } = useAuth(); // 加這行來取得登入狀態
+  const { user } = useAuth(); // 取得登入狀態
 
   const handleStartClick = () => {
     if (user) {

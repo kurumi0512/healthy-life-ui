@@ -7,9 +7,9 @@ const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);     // 儲存登入者資料
-  const [loading, setLoading] = useState(true); // 👈 登入狀態載入中
+  const [loading, setLoading] = useState(true); //登入狀態載入中
 
-  // ✅ 登入：帳密 + 驗證碼
+  //  登入：帳密 + 驗證碼
   const login = async ({ username, password, captcha }) => {
   try {
     const response = await fetch('http://localhost:8082/rest/health/login', {
@@ -22,10 +22,10 @@ export const AuthProvider = ({ children }) => {
     const result = await response.json();
 
     if (response.ok) {
-      console.log("✅ 登入成功，後端回傳 user：", result.user);
+      console.log("登入成功，後端回傳 user：", result.user);
       setUser(result.user);
 
-      // 🔁 補強：登入成功後再次確認登入者資訊
+      // 登入成功後再次確認登入者資訊
       try {
         const checkRes = await fetch('http://localhost:8082/rest/health/user', {
           credentials: 'include'
@@ -33,27 +33,27 @@ export const AuthProvider = ({ children }) => {
 
         if (checkRes.ok) {
           const userData = await checkRes.json();
-          console.log("✅ 二次確認登入身分成功：", userData);
+          console.log("二次確認登入身分成功：", userData);
           setUser(userData.user);
         } else {
-          console.warn("⚠️ 登入後 /user 回傳失敗");
+          console.warn("登入後 /user 回傳失敗");
         }
       } catch (err) {
-        console.error("⚠️ 登入後確認 /user 時發生錯誤", err);
+        console.error("登入後確認 /user 時發生錯誤", err);
       }
 
       return { success: true, user: result.user };
     } else {
-      toast.error(result.message || '登入失敗'); // 👈 加上 toast 提示
+      toast.error(result.message || '登入失敗'); // 加上 toast 提示
       return { success: false, message: result.message };
     }
   } catch (error) {
-    toast.error('登入失敗，請稍後再試'); // 👈 加上錯誤提示
+    toast.error('登入失敗，請稍後再試'); // 加上錯誤提示
     return { success: false, message: '登入失敗，請稍後再試' };
   }
 };
 
-  // ✅ 註冊（會觸發後端發送 email 驗證）
+  // 註冊（觸發後端發送 email 驗證）
   const register = async ({ username, password, confirmPassword, email }) => {
   try {
     const response = await fetch(
@@ -62,7 +62,7 @@ export const AuthProvider = ({ children }) => {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        // ✅ 把 confirmPassword 也一起送給後端
+        // 把 confirmPassword 也一起送給後端
         body: JSON.stringify({ username, password, confirmPassword, email })
       }
     );
@@ -76,7 +76,7 @@ export const AuthProvider = ({ children }) => {
   }
 };
 
-  // ✅ 登出
+  // 登出
   const logout = async () => {
     await fetch('http://localhost:8082/rest/health/logout', {
       method: 'POST',
@@ -85,7 +85,7 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
-  // ✅ 初次進站，自動檢查 session 是否已登入
+  // 初次進站，自動檢查 session 是否已登入
     useEffect(() => {
       fetch('http://localhost:8082/rest/health/user', {
         credentials: 'include'
@@ -103,11 +103,11 @@ export const AuthProvider = ({ children }) => {
           }
         })
         .catch(err => {
-          console.log("❌ 尚未登入或 session 已失效");
+          console.log("尚未登入或 session 已失效");
           setUser(null);
         })
         .finally(() => {
-          setLoading(false); // ✅ ➕這一行，畫面才會跳離「載入中...」
+          setLoading(false); // 畫面跳離「載入中...」
         });
     }, []);
 

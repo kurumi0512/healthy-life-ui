@@ -53,7 +53,7 @@ function BPRecordPage() {
       setNotes(result.text); // 更新備註內容
   
       if (result.modified) {
-        toast.warn("⚠️ 備註含有不當字詞或過長，已自動處理", {
+        toast.warn("備註含有不當字詞或過長，已自動處理", {
           toastId: "note-warning"
         });
       }
@@ -92,7 +92,7 @@ function BPRecordPage() {
     const sys = parseInt(systolic);
     const dia = parseInt(diastolic);
 
-    // ✅ 數值驗證：50~250
+    // 數值驗證：50~250
     if (isNaN(sys) || isNaN(dia) || sys < 50 || sys > 250 || dia < 50 || dia > 250) {
       toast.error("血壓數值需在 50～250 mmHg 範圍內");
       return;
@@ -106,7 +106,7 @@ function BPRecordPage() {
     const record = {
       systolic: sys,
       diastolic: dia,
-      recordDate: recordDate?.trim() !== '' ? recordDate : null, // ✅ 保險做法
+      recordDate: recordDate?.trim() !== '' ? recordDate : null, // 保險做法
       notes: notes.trim() === "" ? null : notes.trim()
     };
 
@@ -163,7 +163,7 @@ function BPRecordPage() {
     setNotes('');
     setEditingId(null);
     setRecordDate(new Date().toISOString().split('T')[0]);
-    setShowImmediateTip(false);  // 🧼 同步清掉紅字
+    setShowImmediateTip(false);  // 同步清掉紅字
   };
 
   const handleEdit = (record) => {
@@ -194,12 +194,12 @@ function BPRecordPage() {
               await fetchRecords();
               await fetchLastRecordDate();
 
-              // ✅ 防止重複 toast
+              // 防止重複 toast
               toast.success('已成功刪除血壓紀錄', { toastId: 'bp-delete-success' });
             } catch (err) {
               console.error('刪除失敗', err);
 
-              // ✅ 錯誤也設 id 避免堆疊
+              // 錯誤也設 id 避免堆疊
               toast.error('刪除失敗，請稍後再試', { toastId: 'bp-delete-fail' });
             }
           }
@@ -293,12 +293,12 @@ function BPRecordPage() {
         setSystolic(last.systolic.toString());
         setDiastolic(last.diastolic.toString());
         setNotes(last.notes || '');
-        console.log("✅ 已載入上一筆血壓紀錄");
+        console.log("已載入上一筆血壓紀錄");
       } else {
-        console.log("ℹ️ 尚無上一筆紀錄可供複製");
+        console.log("ℹ尚無上一筆紀錄可供複製");
       }
     } catch (err) {
-      console.error("❌ 載入上一筆紀錄失敗", err);
+      console.error("載入上一筆紀錄失敗", err);
     }
   };
 
@@ -351,7 +351,7 @@ function BPRecordPage() {
       {/* 圖表區塊 */}
       {bpRecords.length > 0 && <BPChart chartData={chartData} />}
 
-      {/* ✅ 最近 7 天趨勢分析區塊 */}
+      {/* 最近 7 天趨勢分析區塊 */}
       {bpRecords.length >= 7 && <BPTrendCard trendMessage={trendMessage} />}
 
       {/* 血壓紀錄顯示區塊 */}
@@ -363,14 +363,14 @@ function BPRecordPage() {
         onDelete={handleDelete}
         getBPStatusFromValues={getBPStatusFromValues}
       />
-      {/* ✅ 小雞插圖直接放進來這裡 */}
+      {/* 插圖 */}
       <div className="mt-8 text-center">
         <img src="/cat.png" alt="血壓紀錄" className="mx-auto w-80 rounded-lg" />
         <p className="mt-4 text-gray-600">保持健康的血壓，關注每一天！</p>
       </div>
     </div>
 
-    {/* 🎉 成功紀錄彈窗 */}
+    {/* 成功紀錄彈窗 */}
     {showCongrats && (
       <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
         <div className="flex flex-col items-center bg-white rounded-xl p-4 shadow-xl animate-fade-in-up">
@@ -384,7 +384,7 @@ function BPRecordPage() {
 
     
 
-    {/* ✅ 健康提醒浮動區塊 */}
+    {/* 健康提醒浮動區塊 */}
       {showHealthTip && bpStatus.message && bpStatus.color !== 'text-green-400' && (
         <div className="fixed bottom-38 right-6 bg-white shadow-lg rounded-lg p-4 border-l-4 border-yellow-400 w-80 z-50 animate-fade-in-up">
           <div className="flex justify-between items-center">

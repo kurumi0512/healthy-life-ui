@@ -10,7 +10,7 @@ function LoginPage() {
   const [captchaImage, setCaptchaImage] = useState('http://localhost:8082/rest/health/captcha');
   const [errors, setErrors] = useState({});
 
-  const { login } = useAuth(); // ✅ 從 context 拿 login 方法
+  const { login } = useAuth(); // 從 context 拿 login 方法
   const navigate = useNavigate();
 
   const refreshCaptcha = () => {
@@ -35,7 +35,7 @@ function LoginPage() {
 
     if (result.success) {
       const user = result.user;
-      console.log('✅ 登入成功使用者資料：', user);
+      console.log('登入成功使用者資料：', user);
 
       await Swal.fire({
         icon: 'success',
@@ -57,7 +57,7 @@ function LoginPage() {
         title: '登入失敗',
         text: result.message || '請稍後再試'
       });
-      refreshCaptcha(); // ❗登入失敗時刷新驗證碼
+      refreshCaptcha(); // 登入失敗時刷新驗證碼
     }
   };
 

@@ -43,7 +43,7 @@ function SugarLogPage() {
   const [showHealthTip, setShowHealthTip] = useState(false);
   const [analysisTarget, setAnalysisTarget] = useState('fasting');
   const bottomRef = useRef(null); 
-  const formRef = useRef(null); // 👈 這一行是你要加的
+  const formRef = useRef(null); 
 
 
 
@@ -66,7 +66,7 @@ function SugarLogPage() {
 
   const handleNoteChange = (e) => {
     const result = filterAndLimitNotes(e.target.value);
-    setNotes(result.text); // 更新備註內容
+    setNotes(result.text); 
 
     if (result.modified) {
       toast.warn("⚠️ 備註含有不當字詞或過長，已自動處理", {
@@ -172,7 +172,7 @@ function SugarLogPage() {
     setRecordDate(record.recordDate);
     setNotes(record.notes || '');
     setEditingId(record.recordId);
-    // 👇 編輯時自動滑到上方表單
+    // 編輯時自動滑到上方表單
     if (formRef.current) {
       const topOffset = formRef.current.getBoundingClientRect().top + window.pageYOffset - 170;
       window.scrollTo({ top: topOffset, behavior: "smooth" });

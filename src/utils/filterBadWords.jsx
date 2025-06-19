@@ -1,4 +1,4 @@
-const badWords = ['幹', '靠北', '機掰', '白癡', '死', '王八', '智障'];
+const badWords = ['幹', '靠北', '機掰', '白癡', '死', '王八', '智障', '乾'];
 
 export function filterAndLimitNotes(input, maxLength = 50) {
   if (!input) return { text: '', modified: false };

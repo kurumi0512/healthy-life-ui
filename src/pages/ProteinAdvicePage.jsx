@@ -10,7 +10,7 @@ function ProteinAdvicePage() {
   const [result, setResult] = useState(null);
   const [filled, setFilled] = useState(false);
 
-  // ✅ API 請求處理
+  // API 請求處理
   const handleSubmit = async () => {
     if (!weight || parseFloat(weight) <= 0) {
       toast.warning("⚠️ 請輸入有效的體重");
@@ -31,11 +31,11 @@ function ProteinAdvicePage() {
       setResult(res.data);
     } catch (err) {
       console.error("取得建議失敗", err);
-      toast.error("❌ 發生錯誤，請稍後再試");
+      toast.error("發生錯誤，請稍後再試");
     }
   };
 
-  // ✅ 自動載入最新體重
+  // 自動載入最新體重
   const handleAutoFill = async () => {
     if (filled) {
       toast.info("資料已載入，無需重複操作");
@@ -51,7 +51,7 @@ function ProteinAdvicePage() {
       if (data?.data?.weight) {
         setWeight(data.data.weight.toString());
         setFilled(true);
-        toast.success("✅ 已載入最新體重！");
+        toast.success("已載入最新體重！");
       } else {
         toast.warning("查無體重紀錄");
       }

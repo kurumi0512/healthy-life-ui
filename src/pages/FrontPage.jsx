@@ -36,7 +36,7 @@ function FrontPage() {
   const selected = shuffled.slice(0, 5);
   setRandomNews(selected);
 
-  // 🔍 載入 AI 推薦新聞
+  // 載入 AI 推薦新聞
   axios.get('http://localhost:8082/rest/health/news/recommend', { withCredentials: true })
     .then(res => setRecommendation(res.data))
     .catch(err => console.error('載入推薦新聞失敗', err));
