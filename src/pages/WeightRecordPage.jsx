@@ -122,54 +122,69 @@ const WeightRecordPage = () => {
   };
 
   const saveWeightRecord = async () => {
-    const heightCm = parseFloat(height);
-    const weightKg = parseFloat(weight);
-    const ageNum = parseInt(age);
+  const heightCm = parseFloat(height);
+  const weightKg = parseFloat(weight);
+  const ageNum = parseInt(age);
 
-    if (isNaN(heightCm) || isNaN(weightKg) || isNaN(ageNum)) {
-      toast.error("身高、體重與年齡必須是數字");
-      return;
-    }
-    if (heightCm < 50 || heightCm > 250) {
-      toast.error("輸入合理的身高（50 ~ 250 cm）");
-      return;
-    }
-    if (weightKg < 10 || weightKg > 300) {
-      toast.error("請輸入合理的體重（10 ~ 300 kg）");
-      return;
-    }
-    if (ageNum < 1 || ageNum > 120) {
-      toast.error("請輸入合理的年齡（1 ~ 120 歲）");
-      return;
-    }
+  if (isNaN(heightCm) || isNaN(weightKg) || isNaN(ageNum)) {
+    toast.error("身高、體重與年齡必須是數字");
+    return;
+  }
+  if (heightCm < 50 || heightCm > 250) {
+    toast.error("輸入合理的身高（50 ~ 250 cm）");
+    return;
+  }
+  if (weightKg < 10 || weightKg > 300) {
+    toast.error("請輸入合理的體重（10 ~ 300 kg）");
+    return;
+  }
+  if (ageNum < 1 || ageNum > 120) {
+    toast.error("請輸入合理的年齡（1 ~ 120 歲）");
+    return;
+  }
 
-    let latestRecordBeforeSave = null;
-    if (!editingId && weightRecords.length > 0) {
-      latestRecordBeforeSave = weightRecords[weightRecords.length - 1];
-    }
+  const bmiValue = weightKg / ((heightCm / 100) ** 2);
+    const data = {
+      height: heightCm,
+      weight: weightKg,
+      age: ageNum,
+      bmi: bmiValue,
+      recordDate: recordDate || new Date().toISOString().split("T")[0]
+    };
 
     try {
-      const bmiValue = weightKg / ((heightCm / 100) ** 2);
-      const data = {
-        height: heightCm,
-        weight: weightKg,
-        age: ageNum,
-        bmi: bmiValue,
-        recordDate: recordDate || new Date().toISOString().split("T")[0]
-      };
-
       if (editingId) {
+        // 編輯模式：不灑花
         await axios.put(`http://localhost:8082/rest/health/weight/${editingId}`, data, {
           withCredentials: true,
         });
         setEditingId(null);
       } else {
+        // ✅ 非編輯模式，灑花邏輯才啟用
+        let latestRecordBeforeSave = null;
+
+        if (weightRecords.length > 0) {
+          // 過濾掉與這筆相同日期的紀錄（避免重複比較）
+          const validRecords = weightRecords.filter(r => r.recordDate !== recordDate);
+
+          // 找出日期最新的紀錄
+          if (validRecords.length > 0) {
+            latestRecordBeforeSave = validRecords.reduce((latest, current) => {
+              return new Date(current.recordDate) > new Date(latest.recordDate) ? current : latest;
+            });
+          }
+        }
+
+        // 寫入新紀錄
         await axios.post("http://localhost:8082/rest/health/weight", data, {
           withCredentials: true,
         });
-        if (latestRecordBeforeSave) {
+
+        // 🎯 觸發灑花邏輯（只有在比過去最新的紀錄還「新」，才會觸發）
+        if (latestRecordBeforeSave && new Date(recordDate) > new Date(latestRecordBeforeSave.recordDate)) {
           handleWeightFeedback(latestRecordBeforeSave.weight, weightKg);
         }
+
         toast.success(`✅ BMI：${bmiValue.toFixed(2)}，紀錄成功`);
       }
 
