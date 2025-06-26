@@ -160,7 +160,7 @@ const WeightRecordPage = () => {
         });
         setEditingId(null);
       } else {
-        // ✅ 非編輯模式，灑花邏輯才啟用
+        // 非編輯模式，灑花邏輯才啟用
         let latestRecordBeforeSave = null;
 
         if (weightRecords.length > 0) {
