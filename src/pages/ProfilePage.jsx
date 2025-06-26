@@ -86,9 +86,9 @@ function ProfilePage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
-      <div className="bg-white shadow-md rounded-2xl p-6 pt-24 sm:p-8 max-w-md w-full">
-        <h1 className="text-xl sm:text-2xl font-bold text-center mb-6 text-blue-600">👤 使用者設定</h1>
+   <div className="min-h-screen bg-gray-100 px-4 py-10">
+     <div className="bg-white shadow-md rounded-2xl p-6 sm:p-8 max-w-md mx-auto">
+      <h1 className="text-xl sm:text-2xl font-bold text-center mb-6 text-blue-600">👤 使用者設定</h1>
 
         <form onSubmit={handleSubmit} className="space-y-4 text-sm sm:text-base">
           <div>

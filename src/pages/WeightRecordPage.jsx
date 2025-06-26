@@ -180,7 +180,7 @@ const WeightRecordPage = () => {
           withCredentials: true,
         });
 
-        // 🎯 觸發灑花邏輯（只有在比過去最新的紀錄還「新」，才會觸發）
+        // 觸發灑花邏輯（只有在比過去最新的紀錄還「新」，才會觸發）
         if (latestRecordBeforeSave && new Date(recordDate) > new Date(latestRecordBeforeSave.recordDate)) {
           handleWeightFeedback(latestRecordBeforeSave.weight, weightKg);
         }
